@@ -1,4 +1,3 @@
 {
-  "buildCommand": "echo 'Build complete'",
-  "outputDirectory": "public"
+  "version": 2
 }
