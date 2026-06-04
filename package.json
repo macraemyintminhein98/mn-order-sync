@@ -2,7 +2,9 @@
   "name": "mn-order-sync",
   "version": "3.0.0",
   "type": "module",
-  "engines": { "node": "18.x" },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0"
   }
