@@ -22,7 +22,7 @@
   --fm:"JetBrains Mono",monospace;
   --r:6px;--rl:10px;
   --s:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
-  --sm:0 4px 6px rgba(0,0,0,.08);
+  --sm:0 4px 8px rgba(0,0,0,.1);
   --sl:0 10px 15px rgba(0,0,0,.1);
 }
 html{font-size:14px;font-family:var(--fb);background:var(--g100);color:var(--g800);line-height:1.5}
@@ -45,8 +45,7 @@ header{background:var(--navy);box-shadow:0 2px 12px rgba(0,0,0,.3);position:stic
 nav{background:var(--navy-d);border-bottom:1px solid rgba(255,255,255,.07)}
 .ni{display:flex;max-width:1400px;margin:0 auto;padding:0 20px}
 .tb{font-family:var(--fh);font-size:.88rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);background:none;border:none;padding:11px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
-.tb:hover{color:rgba(255,255,255,.8)}
-.tb.active{color:#fff;border-bottom-color:var(--blue)}
+.tb:hover{color:rgba(255,255,255,.8)}.tb.active{color:#fff;border-bottom-color:var(--blue)}
 
 /* MAIN */
 main{flex:1;max-width:1400px;margin:0 auto;width:100%;padding:20px}
@@ -62,7 +61,7 @@ main{flex:1;max-width:1400px;margin:0 auto;width:100%;padding:20px}
 .sn{font-family:var(--fh);font-size:2.3rem;font-weight:700;color:var(--g800);line-height:1}
 .ss{font-size:.75rem;color:var(--g400);margin-top:3px}
 
-/* TYPE GRID */
+/* TYPE CARDS (dashboard) */
 .tg{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
 @media(max-width:680px){.tg{grid-template-columns:1fr}}
 .tc{background:#fff;border-radius:var(--rl);padding:16px 18px;box-shadow:var(--s);cursor:pointer;transition:box-shadow .2s,transform .15s}
@@ -73,17 +72,36 @@ main{flex:1;max-width:1400px;margin:0 auto;width:100%;padding:20px}
 .pb{height:5px;background:var(--g200);border-radius:3px;overflow:hidden}
 .pf{height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease}
 .tcs{font-size:.73rem;color:var(--g400);margin-top:5px}
-
 .stitle{font-family:var(--fh);font-size:.9rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--g600);margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid var(--g200)}
 
-/* UPLOAD */
-.uz{background:#fff;border:2.5px dashed var(--g300);border-radius:var(--rl);padding:55px 40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px}
+/* ── UPLOAD TAB ── */
+.upload-step{margin-bottom:24px}
+.step-label{font-family:var(--fh);font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.step-label .sn2{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* CATEGORY CARDS */
+.cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:600px){.cat-grid{grid-template-columns:1fr}}
+.cat-card{background:#fff;border:2px solid var(--g200);border-radius:var(--rl);padding:16px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
+.cat-card:hover{border-color:var(--blue);background:var(--blue-bg);transform:translateY(-1px);box-shadow:var(--sm)}
+.cat-card.selected{border-color:var(--navy);background:var(--blue-bg);box-shadow:0 0 0 3px rgba(27,58,107,.15)}
+.cat-icon{font-size:1.6rem;flex-shrink:0}
+.cat-info{flex:1}
+.cat-name{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--g800)}
+.cat-desc{font-size:.75rem;color:var(--g500);margin-top:2px}
+.cat-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--g300);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.cat-card.selected .cat-check{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* UPLOAD ZONE */
+.uz{background:#fff;border:2.5px dashed var(--g300);border-radius:var(--rl);padding:48px 40px;text-align:center;cursor:pointer;transition:all .2s}
 .uz:hover,.uz.drag{border-color:var(--blue);background:var(--blue-bg)}
-.ui{font-size:2.8rem;margin-bottom:10px;display:block}
-.uz h3{font-family:var(--fh);font-size:1.15rem;font-weight:700;color:var(--g700);margin-bottom:5px}
-.uz p{color:var(--g400);font-size:.83rem}
-.ubtn{display:inline-block;margin-top:12px;padding:7px 18px;background:var(--navy);color:#fff;border-radius:var(--r);font-size:.83rem;font-weight:600;font-family:var(--fh);letter-spacing:.04em;cursor:pointer;border:none;transition:background .2s}
+.uz.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.ui{font-size:2.6rem;margin-bottom:10px;display:block}
+.uz h3{font-family:var(--fh);font-size:1.1rem;font-weight:700;color:var(--g700);margin-bottom:4px}
+.uz p{color:var(--g400);font-size:.82rem}
+.ubtn{display:inline-block;margin-top:12px;padding:7px 18px;background:var(--navy);color:#fff;border-radius:var(--r);font-size:.82rem;font-weight:600;font-family:var(--fh);letter-spacing:.04em;cursor:pointer;border:none;transition:background .2s}
 .ubtn:hover{background:var(--navy-l)}
+.uz-hint{margin-top:10px;font-size:.76rem;color:var(--g400)}
 
 .spin{width:32px;height:32px;border:3px solid var(--g200);border-top-color:var(--blue);border-radius:50%;animation:rot .8s linear infinite;margin:0 auto 10px}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -93,7 +111,7 @@ main{flex:1;max-width:1400px;margin:0 auto;width:100%;padding:20px}
 .rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .rtn{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--navy)}
 .rc{font-size:.78rem;color:var(--g500);background:var(--g100);padding:2px 8px;border-radius:10px}
-.rnote{font-size:.76rem;color:var(--amber);margin-bottom:8px}
+.rnote{font-size:.76rem;color:var(--amber);margin-bottom:8px;padding:6px 10px;background:var(--amber-bg);border-radius:4px}
 
 /* TABLES */
 .tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--g200)}
@@ -113,17 +131,16 @@ td[contenteditable]:focus{background:var(--blue-bg);box-shadow:0 0 0 2px var(--b
 .bx.pending{background:var(--g100);color:var(--g500)}
 .bx.cancelled{background:var(--orange-bg);color:var(--orange)}
 
-/* SYNC BAR */
-.sbar{background:#fff;border-radius:var(--rl);padding:14px 18px;box-shadow:var(--s);display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+/* SAVE BAR */
+.sbar{background:#fff;border-radius:var(--rl);padding:14px 18px;box-shadow:var(--s);display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
 .si{font-size:.83rem;color:var(--g600)}
-.si strong{color:var(--g800)}
-.wk{font-family:var(--fm);font-size:.78rem;color:var(--g500);background:var(--g100);padding:2px 7px;border-radius:4px;margin-left:6px}
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:var(--r);font-family:var(--fh);font-size:.85rem;font-weight:600;letter-spacing:.04em;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
 .bp{background:var(--navy);color:#fff}.bp:hover{background:var(--navy-l)}
 .bg{background:var(--green);color:#fff}.bg:hover{filter:brightness(1.08)}
 .bh{background:transparent;color:var(--g600);border:1.5px solid var(--g300)}.bh:hover{background:var(--g100)}
+.bred{background:var(--red);color:#fff}.bred:hover{filter:brightness(1.08)}
 .bs{padding:5px 11px;font-size:.78rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
@@ -139,27 +156,15 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
 .ttb.active{background:#fff;color:var(--navy);box-shadow:var(--s)}
 
 /* SETTINGS */
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:780px){.sgrid{grid-template-columns:1fr}}
-.scard{background:#fff;border-radius:var(--rl);padding:18px;box-shadow:var(--s)}
+.scard{background:#fff;border-radius:var(--rl);padding:18px;box-shadow:var(--s);margin-bottom:18px}
 .scard h3{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid var(--g100)}
-.sr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g100)}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--g100)}
 .sr:last-child{border-bottom:none}
 .srl{font-size:.83rem;color:var(--g700)}
 .pill{font-size:.73rem;font-weight:600;padding:2px 9px;border-radius:10px}
 .pill.ok{background:var(--green-bg);color:var(--green)}
 .pill.err{background:var(--red-bg);color:var(--red)}
 .pill.chk{background:var(--amber-bg);color:var(--amber)}
-.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
-.snum{min-width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;flex-shrink:0}
-.sbody{flex:1}
-.sbody strong{font-size:.83rem;color:var(--g800)}
-.sbody p{font-size:.78rem;color:var(--g500);margin-top:2px}
-.sbody code{font-family:var(--fm);font-size:.76rem;background:var(--g100);padding:1px 5px;border-radius:3px;color:var(--navy)}
-.gcb{position:relative;background:var(--g800);border-radius:var(--r);overflow:hidden;margin-top:10px}
-.gcb pre{padding:12px 14px;font-family:var(--fm);font-size:.7rem;color:#e2e8f0;overflow-x:auto;max-height:280px;line-height:1.55;white-space:pre}
-.cpb{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:.7rem;cursor:pointer}
-.cpb:hover{background:rgba(255,255,255,.2)}
 
 /* EMPTY */
 .empty{text-align:center;padding:50px 20px;color:var(--g400)}
@@ -183,7 +188,6 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
     <div class="htitle">MN Order Sync <span>MN Custom Homes</span></div>
     <div class="dots">
       <div class="dg"><div class="dot chk" id="dot-api"></div>Claude AI</div>
-      <div class="dg"><div class="dot chk" id="dot-sh"></div>Sheets</div>
     </div>
     <button class="btn bh bs" onclick="refreshAll()">&#8635; Refresh</button>
   </div>
@@ -212,66 +216,110 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
     <div class="tc" onclick="sw('orders');setType('mainSignInstalls')">
       <div class="tch"><span class="tcn">&#127968; Main Sign Installs</span><span class="tcc" id="tc-msi">—</span></div>
       <div class="pb"><div class="pf" id="pb-msi" style="width:0%"></div></div>
-      <div class="tcs" id="ts-msi">Loading…</div>
+      <div class="tcs" id="ts-msi">No data yet</div>
     </div>
     <div class="tc" onclick="sw('orders');setType('safetySignInstalls')">
       <div class="tch"><span class="tcn">&#9940; Safety Sign Installs</span><span class="tcc" id="tc-ssi">—</span></div>
       <div class="pb"><div class="pf" id="pb-ssi" style="width:0%"></div></div>
-      <div class="tcs" id="ts-ssi">Loading…</div>
+      <div class="tcs" id="ts-ssi">No data yet</div>
     </div>
     <div class="tc" onclick="sw('orders');setType('onMarketRiders')">
       <div class="tch"><span class="tcn">&#127968; On-Market Riders</span><span class="tcc" id="tc-omr">—</span></div>
       <div class="pb"><div class="pf" id="pb-omr" style="width:0%"></div></div>
-      <div class="tcs" id="ts-omr">Loading…</div>
+      <div class="tcs" id="ts-omr">No data yet</div>
     </div>
     <div class="tc" onclick="sw('orders');setType('mainSignRemovals')">
       <div class="tch"><span class="tcn">&#10060; Main Sign Removals</span><span class="tcc" id="tc-msr">—</span></div>
       <div class="pb"><div class="pf" id="pb-msr" style="width:0%"></div></div>
-      <div class="tcs" id="ts-msr">Loading…</div>
+      <div class="tcs" id="ts-msr">No data yet</div>
     </div>
   </div>
   <div class="stitle">Recent Orders</div>
   <div class="tw"><table>
-    <thead><tr><th>#</th><th>Type</th><th>Project</th><th>PM</th><th>Synced</th><th>Status</th></tr></thead>
+    <thead><tr><th>#</th><th>Type</th><th>Project</th><th>PM</th><th>Date Added</th><th>Status</th></tr></thead>
     <tbody id="rec-body"><tr><td colspan="6"><div class="empty"><div class="ei">&#128203;</div><p>No orders yet — upload from Ashley's email to get started.</p></div></td></tr></tbody>
   </table></div>
 </div>
 
 <!-- UPLOAD -->
 <div class="tp" id="tp-upload">
-  <div class="uz" id="uz"
-    onclick="document.getElementById('fi').click()"
-    ondragover="event.preventDefault();this.classList.add('drag')"
-    ondragleave="this.classList.remove('drag')"
-    ondrop="drop(event)">
-    <span class="ui">&#128248;</span>
-    <h3>Drop Ashley's email screenshot here</h3>
-    <p>PNG, JPG, WebP — auto-converts to JPEG for best AI accuracy</p>
-    <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Browse Files</button>
-  </div>
-  <input type="file" id="fi" accept="image/*" onchange="onFile(event)" style="display:none">
 
-  <div id="proc" style="display:none">
-    <div class="rs" style="text-align:center;padding:40px">
-      <div class="spin"></div>
-      <p style="color:var(--g500);font-size:.88rem">Scanning with Claude AI — extracting order tables…</p>
+  <!-- STEP 1: CATEGORY -->
+  <div class="upload-step">
+    <div class="step-label"><span class="sn2">1</span> Choose the table type you're uploading</div>
+    <div class="cat-grid">
+      <div class="cat-card" id="cat-mainSignInstalls" onclick="selectCat('mainSignInstalls')">
+        <span class="cat-icon">&#127968;</span>
+        <div class="cat-info">
+          <div class="cat-name">Main Sign Installs (New Land)</div>
+          <div class="cat-desc">Possession date, LAO info, completion date</div>
+        </div>
+        <div class="cat-check" id="chk-mainSignInstalls"></div>
+      </div>
+      <div class="cat-card" id="cat-safetySignInstalls" onclick="selectCat('safetySignInstalls')">
+        <span class="cat-icon">&#9940;</span>
+        <div class="cat-info">
+          <div class="cat-name">Safety Sign Installs</div>
+          <div class="cat-desc">Construction start date, completion date</div>
+        </div>
+        <div class="cat-check" id="chk-safetySignInstalls"></div>
+      </div>
+      <div class="cat-card" id="cat-onMarketRiders" onclick="selectCat('onMarketRiders')">
+        <span class="cat-icon">&#127979;</span>
+        <div class="cat-info">
+          <div class="cat-name">On-Market Riders Installs</div>
+          <div class="cat-desc">Listing date, install by date, completion</div>
+        </div>
+        <div class="cat-check" id="chk-onMarketRiders"></div>
+      </div>
+      <div class="cat-card" id="cat-mainSignRemovals" onclick="selectCat('mainSignRemovals')">
+        <span class="cat-icon">&#10060;</span>
+        <div class="cat-info">
+          <div class="cat-name">Main Sign Removals</div>
+          <div class="cat-desc">Remove by date, date removed</div>
+        </div>
+        <div class="cat-check" id="chk-mainSignRemovals"></div>
+      </div>
     </div>
   </div>
 
+  <!-- STEP 2: UPLOAD -->
+  <div class="upload-step">
+    <div class="step-label"><span class="sn2">2</span> Upload the screenshot</div>
+    <div class="uz disabled" id="uz"
+      onclick="document.getElementById('fi').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="drop(event)">
+      <span class="ui">&#128248;</span>
+      <h3 id="uz-title">Select a category above first</h3>
+      <p>PNG, JPG, WebP — auto-converts for best AI accuracy</p>
+      <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Browse Files</button>
+      <div class="uz-hint" id="uz-hint"></div>
+    </div>
+    <input type="file" id="fi" accept="image/*" onchange="onFile(event)" style="display:none">
+  </div>
+
+  <!-- PROCESSING -->
+  <div id="proc" style="display:none">
+    <div class="rs" style="text-align:center;padding:40px">
+      <div class="spin"></div>
+      <p style="color:var(--g500);font-size:.88rem" id="proc-msg">Scanning with Claude AI…</p>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
   <div id="rev" style="display:none">
     <div class="sbar">
-      <div class="si">
-        <strong id="rev-sum">0 orders</strong>
-        <span class="wk" id="rev-wk"></span>
-        <span style="color:var(--g400);font-size:.76rem;margin-left:6px">Click any cell to edit before syncing.</span>
-      </div>
+      <div class="si"><strong id="rev-sum">0 rows extracted</strong><span style="color:var(--g400);font-size:.76rem;margin-left:8px">Click any cell to edit.</span></div>
       <div style="display:flex;gap:7px">
         <button class="btn bh" onclick="clearRev()">&#10005; Discard</button>
-        <button class="btn bg" id="sbtn" onclick="syncSheets()">&#9989; Sync to Google Sheets</button>
+        <button class="btn bg" id="sbtn" onclick="saveLocal()">&#10003; Save Orders</button>
       </div>
     </div>
     <div id="rev-tables"></div>
   </div>
+
 </div>
 
 <!-- ORDERS -->
@@ -284,15 +332,15 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
       <option value="completed">Completed</option>
       <option value="cancelled">Cancelled</option>
     </select>
-    <button class="btn bh bs" onclick="loadOrders()">&#8635; Reload</button>
+    <button class="btn bh bs" onclick="dash()">&#8635; Refresh</button>
     <button class="btn bh bs" onclick="exportCSV()">&#8595; Export CSV</button>
+    <button class="btn bred bs" onclick="clearType()" title="Clear all orders for this tab">&#128465; Clear Tab</button>
   </div>
   <div class="ttabs">
-    <button class="ttb active" data-t="mainSignInstalls" onclick="setType('mainSignInstalls')">Main Installs</button>
-    <button class="ttb" data-t="safetySignInstalls" onclick="setType('safetySignInstalls')">Safety Signs</button>
-    <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">Riders</button>
-    <button class="ttb" data-t="mainSignRemovals" onclick="setType('mainSignRemovals')">Removals</button>
-    <button class="ttb" data-t="urgentRequests" onclick="setType('urgentRequests')">Urgent</button>
+    <button class="ttb active" data-t="mainSignInstalls" onclick="setType('mainSignInstalls')">&#127968; Main Installs</button>
+    <button class="ttb" data-t="safetySignInstalls" onclick="setType('safetySignInstalls')">&#9940; Safety Signs</button>
+    <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">&#127979; Riders</button>
+    <button class="ttb" data-t="mainSignRemovals" onclick="setType('mainSignRemovals')">&#10060; Removals</button>
   </div>
   <div class="tw"><table>
     <thead id="oth"></thead>
@@ -302,37 +350,32 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
 
 <!-- SETTINGS -->
 <div class="tp" id="tp-settings">
-  <div class="sgrid">
-    <div>
-      <div class="scard" style="margin-bottom:18px">
-        <h3>Connection Status</h3>
-        <div class="sr"><span class="srl">&#129302; Claude AI (OCR)</span><span class="pill chk" id="p-api">Checking…</span></div>
-        <div class="sr"><span class="srl">&#128202; Google Sheets</span><span class="pill chk" id="p-sh">Checking…</span></div>
-        <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">
-          <button class="btn bp bs" onclick="checkConn()">&#8635; Test Connections</button>
-          <button class="btn bh bs" onclick="setupSheets()">&#128736; Setup All Sheets</button>
-        </div>
-      </div>
-      <div class="scard">
-        <h3>Vercel Environment Variables</h3>
-        <p style="font-size:.8rem;color:var(--g500);margin-bottom:10px">Add both in Vercel → Project Settings → Environment Variables → Redeploy.</p>
-        <div class="step"><div class="snum">1</div><div class="sbody"><strong><code>ANTHROPIC_API_KEY</code></strong><p>Get at <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue)">console.anthropic.com</a> → API Keys</p></div></div>
-        <div class="step"><div class="snum">2</div><div class="sbody"><strong><code>GOOGLE_SCRIPT_URL</code></strong><p>From your Google Apps Script deployment (see right panel)</p></div></div>
+  <div style="max-width:520px">
+    <div class="scard">
+      <h3>Connection Status</h3>
+      <div class="sr"><span class="srl">&#129302; Claude AI (Screenshot OCR)</span><span class="pill chk" id="p-api">Checking…</span></div>
+      <div style="margin-top:12px">
+        <button class="btn bp bs" onclick="checkConn()">&#8635; Test Connection</button>
       </div>
     </div>
     <div class="scard">
-      <h3>Google Apps Script Setup (Do Once)</h3>
-      <p style="font-size:.8rem;color:var(--g500);margin-bottom:12px">Connects this app to your Google Sheet.</p>
-      <div class="step"><div class="snum">1</div><div class="sbody"><strong>Open the MN Homes Google Sheet</strong><p>The one shared by your manager</p></div></div>
-      <div class="step"><div class="snum">2</div><div class="sbody"><strong>Extensions → Apps Script</strong></div></div>
-      <div class="step"><div class="snum">3</div><div class="sbody"><strong>Delete everything → paste this code:</strong></div></div>
-      <div class="gcb">
-        <button class="cpb" onclick="copyGAS()">Copy</button>
-        <pre id="gas-pre"></pre>
+      <h3>Vercel Environment Variable</h3>
+      <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Add this in Vercel → Project Settings → Environment Variables → Redeploy.</p>
+      <div style="background:var(--g800);border-radius:var(--r);padding:12px 14px;font-family:var(--fm);font-size:.8rem;color:#e2e8f0">
+        <span style="color:#94a3b8">Key:</span> ANTHROPIC_API_KEY<br>
+        <span style="color:#94a3b8">Value:</span> your key from console.anthropic.com
       </div>
-      <div class="step" style="margin-top:10px"><div class="snum">4</div><div class="sbody"><strong>Deploy → New Deployment → Web App</strong><p>Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong> → Deploy → Copy URL</p></div></div>
-      <div class="step"><div class="snum">5</div><div class="sbody"><strong>Add URL to Vercel as <code>GOOGLE_SCRIPT_URL</code></strong></div></div>
-      <div class="step"><div class="snum">6</div><div class="sbody"><strong>Click "Setup All Sheets" button</strong><p>Creates all 5 tabs with correct headers</p></div></div>
+    </div>
+    <div class="scard">
+      <h3>Data Storage</h3>
+      <p style="font-size:.82rem;color:var(--g500);margin-bottom:12px">Orders are saved locally in your browser. Use Export CSV to back them up.</p>
+      <div class="sr"><span class="srl">Main Sign Installs</span><span class="pill ok" id="st-msi">0 orders</span></div>
+      <div class="sr"><span class="srl">Safety Sign Installs</span><span class="pill ok" id="st-ssi">0 orders</span></div>
+      <div class="sr"><span class="srl">On-Market Riders</span><span class="pill ok" id="st-omr">0 orders</span></div>
+      <div class="sr" style="border:none"><span class="srl">Main Sign Removals</span><span class="pill ok" id="st-msr">0 orders</span></div>
+      <div style="margin-top:14px">
+        <button class="btn bred bs" onclick="clearAll()">&#128465; Clear All Data</button>
+      </div>
     </div>
   </div>
 </div>
@@ -341,23 +384,13 @@ select.fl{padding:7px 11px;border:1.5px solid var(--g200);border-radius:var(--r)
 <div id="tc"></div>
 
 <script>
-// ── GAS CODE ──────────────────────────────────────────────────
-const GAS = "function getOrCreateSheet(name, headers) {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheet = ss.getSheetByName(name);\n  if (!sheet) {\n    sheet = ss.insertSheet(name);\n    var hr = sheet.getRange(1, 1, 1, headers.length);\n    hr.setValues([headers]);\n    hr.setFontWeight('bold');\n    hr.setBackground('#1B3A6B');\n    hr.setFontColor('#FFFFFF');\n    sheet.setFrozenRows(1);\n    sheet.setColumnWidths(1, headers.length, 150);\n  }\n  return sheet;\n}\n\nvar SHEET_NAMES = {\n  mainSignInstalls: 'Main Sign Installs',\n  safetySignInstalls: 'Safety Sign Installs',\n  onMarketRiders: 'On-Market Riders',\n  mainSignRemovals: 'Main Sign Removals',\n  urgentRequests: 'Urgent Requests'\n};\n\nvar HEADERS = {\n  'Main Sign Installs': ['#','Project','City','PM','Possession Date','LAO Name','LAO Phone','Date Completed','Notes','Cancelled','Week','Synced At'],\n  'Safety Sign Installs': ['#','Project','City','PM','Construction Start Date','Date Completed','Week','Synced At'],\n  'On-Market Riders': ['#','Project','PM','Listing Date','Date Completed','Notes','Week','Synced At'],\n  'Main Sign Removals': ['#','Project','PM','Remove By Date','Date Removed','Week','Synced At'],\n  'Urgent Requests': ['#','Street Address','PM','Request','Date Submitted','Week','Synced At']\n};\n\nfunction doGet(e) {\n  var type = (e.parameter || {}).type;\n  var sheetName = SHEET_NAMES[type];\n  if (!sheetName) return out({error: 'Unknown type: ' + type});\n  var sheet = getOrCreateSheet(sheetName, HEADERS[sheetName]);\n  var data = sheet.getDataRange().getValues();\n  if (data.length <= 1) return out({rows: []});\n  var hdr = data[0];\n  var rows = data.slice(1).map(function(row) {\n    var obj = {};\n    hdr.forEach(function(h, i) { obj[h] = row[i] !== undefined ? String(row[i]) : ''; });\n    return obj;\n  });\n  return out({rows: rows});\n}\n\nfunction doPost(e) {\n  var p = JSON.parse(e.postData.contents);\n  var action = p.action, type = p.type, rows = p.rows, week = p.week;\n  var syncedAt = new Date().toLocaleString('en-US', {timeZone: 'America/Los_Angeles'});\n  try {\n    if (action === 'setup') {\n      Object.keys(SHEET_NAMES).forEach(function(k) {\n        var name = SHEET_NAMES[k];\n        getOrCreateSheet(name, HEADERS[name]);\n      });\n      return out({success: true, message: 'All 5 sheets created successfully'});\n    }\n    if (action === 'add') {\n      var sheetName = SHEET_NAMES[type];\n      if (!sheetName) throw new Error('Unknown type: ' + type);\n      var sheet = getOrCreateSheet(sheetName, HEADERS[sheetName]);\n      var count = 0;\n      (rows || []).forEach(function(r) {\n        var vals;\n        if (type === 'mainSignInstalls')\n          vals = [r.number||'', r.project||'', r.city||'', r.pm||'', r.possessionDate||'', r.laoName||'', r.laoPhone||'', r.dateCompleted||'', r.notes||'', r.cancelled?'Yes':'', week||'', syncedAt];\n        else if (type === 'safetySignInstalls')\n          vals = [r.number||'', r.project||'', r.city||'', r.pm||'', r.constructionStartDate||'', r.dateCompleted||'', week||'', syncedAt];\n        else if (type === 'onMarketRiders')\n          vals = [r.number||'', r.project||'', r.pm||'', r.listingDate||'', r.dateCompleted||'', r.notes||'', week||'', syncedAt];\n        else if (type === 'mainSignRemovals')\n          vals = [r.number||'', r.project||'', r.pm||'', r.removeByDate||'', r.dateRemoved||'', week||'', syncedAt];\n        else if (type === 'urgentRequests')\n          vals = [r.number||'', r.streetAddress||'', r.pm||'', r.request||'', r.dateSubmitted||'', week||'', syncedAt];\n        if (vals) { sheet.appendRow(vals); count++; }\n      });\n      return out({success: true, added: count});\n    }\n    return out({error: 'Unknown action'});\n  } catch(err) {\n    return out({error: err.message});\n  }\n}\n\nfunction out(obj) {\n  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);\n}";
-document.getElementById('gas-pre').textContent = GAS;
+// ── CONSTANTS ─────────────────────────────────────────────────
+const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals'];
 
-// ── STATE ─────────────────────────────────────────────────────
-const A = {
-  tab:'dashboard', uploading:false, syncing:false,
-  pending:null, week:'',
-  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[]},
-  otype:'mainSignInstalls', loaded:false
-};
-
-// ── TYPE CONFIG ───────────────────────────────────────────────
-const TC = {
+const CFG = {
   mainSignInstalls:{
     label:'&#127968; Main Sign Installs (New Land)',
-    gcols:['#','Project','City','PM','Possession Date','LAO Name','LAO Phone','Date Completed','Notes','Cancelled','Week','Synced At'],
+    cols:['#','Project','City','PM','Possession Date','LAO Name','LAO Phone','Date Completed','Notes','Cancelled','Added'],
     rcols:[
       {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'city',l:'City',e:1},
       {k:'pm',l:'PM',e:1},{k:'possessionDate',l:'Possession Date',e:1},
@@ -368,7 +401,7 @@ const TC = {
   },
   safetySignInstalls:{
     label:'&#9940; Safety Sign Installs',
-    gcols:['#','Project','City','PM','Construction Start Date','Date Completed','Week','Synced At'],
+    cols:['#','Project','City','PM','Construction Start Date','Date Completed','Added'],
     rcols:[
       {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'city',l:'City',e:1},
       {k:'pm',l:'PM',e:1},{k:'constructionStartDate',l:'Construction Start',e:1},
@@ -376,8 +409,8 @@ const TC = {
     ]
   },
   onMarketRiders:{
-    label:'&#127968; On-Market Riders Installs',
-    gcols:['#','Project','PM','Listing Date','Date Completed','Notes','Week','Synced At'],
+    label:'&#127979; On-Market Riders Installs',
+    cols:['#','Project','PM','Listing Date','Date Completed','Notes','Added'],
     rcols:[
       {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'pm',l:'PM',e:1},
       {k:'listingDate',l:'Listing Date',e:1},{k:'dateCompleted',l:'Date Completed',e:1},
@@ -386,287 +419,334 @@ const TC = {
   },
   mainSignRemovals:{
     label:'&#10060; Main Sign Removals',
-    gcols:['#','Project','PM','Remove By Date','Date Removed','Week','Synced At'],
+    cols:['#','Project','PM','Remove By Date','Date Removed','Added'],
     rcols:[
       {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'pm',l:'PM',e:1},
       {k:'removeByDate',l:'Remove By Date',e:1},{k:'dateRemoved',l:'Date Removed',e:1}
     ]
-  },
-  urgentRequests:{
-    label:'&#9889; Urgent Requests',
-    gcols:['#','Street Address','PM','Request','Date Submitted','Week','Synced At'],
-    rcols:[
-      {k:'number',l:'#'},{k:'streetAddress',l:'Address',e:1},{k:'pm',l:'PM',e:1},
-      {k:'request',l:'Request',e:1},{k:'dateSubmitted',l:'Date Submitted',e:1}
-    ]
   }
 };
 
-// ── TABS ──────────────────────────────────────────────────────
-function sw(tab) {
-  A.tab=tab;
-  document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  document.querySelectorAll('.tp').forEach(p=>p.classList.toggle('active',p.id==='tp-'+tab));
-  if(tab==='dashboard') dash();
-  if(tab==='orders'){if(!A.loaded)loadOrders();else renderOrders();}
+// ── STATE ─────────────────────────────────────────────────────
+const A = {
+  tab:'dashboard', selCat:null,
+  uploading:false, pending:null,
+  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[]},
+  otype:'mainSignInstalls'
+};
+
+// ── LOAD FROM LOCALSTORAGE ────────────────────────────────────
+function loadStorage() {
+  TYPES.forEach(t => {
+    try {
+      const d = localStorage.getItem('mn-' + t);
+      if (d) A.orders[t] = JSON.parse(d);
+    } catch(e) {}
+  });
 }
 
-// ── CONNECTIONS ───────────────────────────────────────────────
-async function checkConn() {
-  setDot('api','chk'); setDot('sh','chk');
-  setPill('api','chk','Checking…'); setPill('sh','chk','Checking…');
-  try {
-    const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ping:1})});
-    const d=await r.json();
-    const ok=!(d.error&&d.error.includes('ANTHROPIC_API_KEY'));
-    setDot('api',ok?'ok':'err'); setPill('api',ok?'ok':'err',ok?'Connected':'Not configured');
-  } catch { setDot('api','err'); setPill('api','err','Error'); }
-  try {
-    const r=await fetch('/api/sheets?type=mainSignInstalls');
-    const d=await r.json();
-    const ok=!(d.error&&(d.error.includes('GOOGLE_SCRIPT_URL')||d.error.includes('Unknown')));
-    setDot('sh',ok?'ok':'err'); setPill('sh',ok?'ok':'err',ok?'Connected':'Not configured');
-  } catch { setDot('sh','err'); setPill('sh','err','Error'); }
+function saveStorage(type) {
+  localStorage.setItem('mn-' + type, JSON.stringify(A.orders[type]));
 }
-function setDot(k,s){document.getElementById('dot-'+k).className='dot '+s;}
-function setPill(k,s,l){const e=document.getElementById('p-'+k);e.className='pill '+s;e.textContent=l;}
+
+// ── TABS ──────────────────────────────────────────────────────
+function sw(tab) {
+  A.tab = tab;
+  document.querySelectorAll('.tb').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tp').forEach(p => p.classList.toggle('active', p.id === 'tp-' + tab));
+  if (tab === 'dashboard') dash();
+  if (tab === 'orders') renderOrders();
+  if (tab === 'settings') updateStorageStats();
+}
+
+// ── CATEGORY SELECTION ────────────────────────────────────────
+function selectCat(type) {
+  A.selCat = type;
+  TYPES.forEach(t => {
+    document.getElementById('cat-' + t).classList.toggle('selected', t === type);
+    const chk = document.getElementById('chk-' + t);
+    chk.innerHTML = t === type ? '&#10003;' : '';
+  });
+  // Enable upload zone
+  const uz = document.getElementById('uz');
+  uz.classList.remove('disabled');
+  document.getElementById('uz-title').textContent = 'Drop ' + CFG[type].label.replace(/&#[0-9]+;\s?/,'') + ' screenshot here';
+  document.getElementById('uz-hint').textContent = 'Selected: ' + CFG[type].label.replace(/&#[0-9]+;\s?/,'');
+}
 
 // ── FILE UPLOAD ───────────────────────────────────────────────
 function drop(e) {
   e.preventDefault();
   document.getElementById('uz').classList.remove('drag');
-  const f=e.dataTransfer.files[0];
-  if(f) doFile(f);
+  if (!A.selCat) { toast('Select a category first','error'); return; }
+  const f = e.dataTransfer.files[0];
+  if (f) doFile(f);
 }
-function onFile(e) { if(e.target.files[0]) doFile(e.target.files[0]); }
+
+function onFile(e) {
+  if (!A.selCat) { toast('Select a category first','error'); return; }
+  if (e.target.files[0]) doFile(e.target.files[0]);
+}
 
 async function doFile(file) {
-  if(A.uploading) return; A.uploading=true;
-  show('uz',false); show('proc',true); show('rev',false);
-  document.getElementById('rev-tables').innerHTML='';
+  if (A.uploading) return; A.uploading = true;
+  show('uz', false); show('proc', true); show('rev', false);
+  document.getElementById('rev-tables').innerHTML = '';
+  document.getElementById('proc-msg').textContent = 'Scanning with Claude AI — extracting ' + A.selCat.replace(/([A-Z])/g,' $1').trim() + ' table…';
   try {
-    const b64=await toJpeg(file);
-    const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:b64,mediaType:'image/jpeg'})});
-    if(!r.ok){const d=await r.json();throw new Error(d.error||'OCR failed');}
-    const data=await r.json();
-    A.pending=data; A.week=data.week||'';
-    showRev(data);
-    toast('Orders extracted! Review and edit, then sync.','success');
+    const b64 = await toJpeg(file);
+    const r = await fetch('/api/extract', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ imageData: b64, mediaType: 'image/jpeg', type: A.selCat })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'OCR failed'); }
+    const data = await r.json();
+    A.pending = { type: A.selCat, rows: data.rows || [] };
+    showRev(A.pending);
+    toast((data.rows||[]).length + ' rows extracted — review and save','success');
   } catch(err) {
-    toast('Error: '+err.message,'error');
-    show('uz',true);
+    toast('Error: ' + err.message, 'error');
+    show('uz', true);
   } finally {
-    A.uploading=false; show('proc',false);
-    document.getElementById('fi').value='';
+    A.uploading = false; show('proc', false);
+    document.getElementById('fi').value = '';
   }
 }
 
 async function toJpeg(file) {
-  return new Promise((res,rej)=>{
-    const img=new Image(), url=URL.createObjectURL(file);
-    img.onload=()=>{
-      const c=document.createElement('canvas');
-      c.width=img.naturalWidth; c.height=img.naturalHeight;
-      const ctx=c.getContext('2d');
-      ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-      ctx.drawImage(img,0,0);
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0);
       URL.revokeObjectURL(url);
-      res(c.toDataURL('image/jpeg',0.95).split(',')[1]);
+      res(c.toDataURL('image/jpeg', 0.95).split(',')[1]);
     };
-    img.onerror=()=>rej(new Error('Cannot load image'));
-    img.src=url;
+    img.onerror = () => rej(new Error('Cannot load image'));
+    img.src = url;
   });
 }
 
 // ── REVIEW ────────────────────────────────────────────────────
-function showRev(data) {
-  const cont=document.getElementById('rev-tables');
-  cont.innerHTML=''; let tot=0;
-  Object.entries(TC).forEach(([type,cfg])=>{
-    const rows=(data[type]||[]);
-    if(!rows.length) return;
-    tot+=rows.length;
-    const s=document.createElement('div'); s.className='rs';
-    s.innerHTML=`<div class="rh"><span class="rtn">${cfg.label}</span><span class="rc">${rows.length} order${rows.length>1?'s':''}</span></div>`+
-      (type==='mainSignInstalls'?'<div class="rnote">&#9888; Orange-highlighted rows in original email = Cancelled. Mark manually if needed.</div>':'')+
-      `<div class="tw"><table><thead><tr>${cfg.rcols.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody id="rb-${type}"></tbody></table></div>`;
-    cont.appendChild(s);
-    const tb=document.getElementById('rb-'+type);
-    rows.forEach((row,i)=>{
-      const tr=document.createElement('tr');
-      if(row.cancelled) tr.classList.add('cxl');
-      tr.innerHTML=cfg.rcols.map(c=>{
-        const v=row[c.k]!==undefined?String(row[c.k]):'';
-        if(c.fn) return `<td>${c.fn(row[c.k])}</td>`;
-        if(c.e) return `<td contenteditable="true" data-t="${type}" data-i="${i}" data-k="${c.k}" oninput="upd(this)">${esc(v)}</td>`;
-        return `<td>${esc(v)}</td>`;
-      }).join('');
-      tb.appendChild(tr);
-    });
+function showRev(pending) {
+  const {type, rows} = pending;
+  const cfg = CFG[type];
+  const cont = document.getElementById('rev-tables');
+  cont.innerHTML = '';
+
+  if (!rows.length) {
+    cont.innerHTML = '<div class="empty"><div class="ei">&#129300;</div><p>No rows found. Try a clearer screenshot or crop just the table.</p></div>';
+    document.getElementById('rev-sum').textContent = '0 rows extracted';
+    show('rev', true); return;
+  }
+
+  const s = document.createElement('div'); s.className = 'rs';
+  s.innerHTML = `<div class="rh"><span class="rtn">${cfg.label}</span><span class="rc">${rows.length} row${rows.length > 1 ? 's' : ''}</span></div>`
+    + (type === 'mainSignInstalls' ? '<div class="rnote">&#9888; Orange-highlighted rows = Cancelled. Check the Cancelled column.</div>' : '')
+    + `<div class="tw"><table><thead><tr>${cfg.rcols.map(c => `<th>${c.l}</th>`).join('')}</tr></thead><tbody id="rev-body"></tbody></table></div>`;
+  cont.appendChild(s);
+
+  const tb = document.getElementById('rev-body');
+  rows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    if (row.cancelled) tr.classList.add('cxl');
+    tr.innerHTML = cfg.rcols.map(c => {
+      const v = row[c.k] !== undefined ? String(row[c.k]) : '';
+      if (c.fn) return `<td>${c.fn(row[c.k])}</td>`;
+      if (c.e) return `<td contenteditable="true" data-i="${i}" data-k="${c.k}" oninput="updPending(this)">${esc(v)}</td>`;
+      return `<td>${esc(v)}</td>`;
+    }).join('');
+    tb.appendChild(tr);
   });
-  if(!tot) cont.innerHTML='<div class="empty"><div class="ei">&#129300;</div><p>No tables found. Try a clearer screenshot or crop just the order tables.</p></div>';
-  document.getElementById('rev-sum').textContent=tot+' order'+(tot===1?'':'s')+' extracted';
-  const wk=document.getElementById('rev-wk');
-  wk.textContent=data.week||''; wk.style.display=data.week?'':'none';
-  show('rev',true);
+
+  document.getElementById('rev-sum').textContent = rows.length + ' row' + (rows.length > 1 ? 's' : '') + ' extracted';
+  show('rev', true);
 }
 
-function upd(cell) {
-  const t=cell.dataset.t,i=parseInt(cell.dataset.i),k=cell.dataset.k;
-  if(A.pending&&A.pending[t]) A.pending[t][i][k]=cell.textContent;
+function updPending(cell) {
+  const i = parseInt(cell.dataset.i), k = cell.dataset.k;
+  if (A.pending && A.pending.rows[i]) A.pending.rows[i][k] = cell.textContent;
 }
 
 function clearRev() {
-  A.pending=null; A.week='';
-  show('rev',false); show('uz',true);
-  document.getElementById('rev-tables').innerHTML='';
+  A.pending = null;
+  show('rev', false); show('uz', true);
+  document.getElementById('rev-tables').innerHTML = '';
 }
 
-// ── SYNC ──────────────────────────────────────────────────────
-async function syncSheets() {
-  if(!A.pending||A.syncing) return;
-  A.syncing=true;
-  const btn=document.getElementById('sbtn');
-  btn.disabled=true; btn.textContent='Syncing…';
-  let added=0; const errs=[];
-  try {
-    for(const type of Object.keys(TC)) {
-      const rows=A.pending[type]||[];
-      if(!rows.length) continue;
-      const r=await fetch('/api/sheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add',type,rows,week:A.week})});
-      const d=await r.json();
-      if(d.success) added+=d.added||rows.length;
-      else errs.push(type+': '+(d.error||'unknown'));
-    }
-    if(errs.length) toast('Partial: '+errs.join(', '),'error');
-    else { toast('✓ '+added+' orders synced to Google Sheets!','success'); clearRev(); loadOrders(); }
-  } catch(e) { toast('Sync failed: '+e.message,'error'); }
-  finally { A.syncing=false; btn.disabled=false; btn.textContent='&#9989; Sync to Google Sheets'; }
-}
-
-// ── LOAD ORDERS ───────────────────────────────────────────────
-async function loadOrders() {
-  for(const type of Object.keys(TC)) {
-    try {
-      const r=await fetch('/api/sheets?type='+type);
-      const d=await r.json();
-      if(d.rows) A.orders[type]=d.rows;
-    } catch(e) { console.warn(type,e); }
-  }
-  A.loaded=true; dash();
-  if(A.tab==='orders') renderOrders();
+// ── SAVE TO LOCALSTORAGE ──────────────────────────────────────
+function saveLocal() {
+  if (!A.pending || !A.pending.rows.length) { toast('Nothing to save','info'); return; }
+  const {type, rows} = A.pending;
+  const now = new Date().toLocaleDateString('en-US');
+  rows.forEach(r => { if (!r.addedDate) r.addedDate = now; });
+  A.orders[type] = [...A.orders[type], ...rows];
+  saveStorage(type);
+  toast('&#10003; ' + rows.length + ' orders saved!', 'success');
+  clearRev();
+  dash();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function dash() {
-  let tot=0,pen=0,com=0,can=0;
-  const ts={mainSignInstalls:{t:0,c:0},safetySignInstalls:{t:0,c:0},onMarketRiders:{t:0,c:0},mainSignRemovals:{t:0,c:0}};
-  const all=[];
-  Object.entries(A.orders).forEach(([type,rows])=>rows.forEach(row=>{
-    tot++; if(ts[type])ts[type].t++;
-    const done=isDone(row),canc=isCanc(row);
-    if(done){com++;if(ts[type])ts[type].c++;}
-    else if(canc) can++;
+  loadStorage();
+  let tot = 0, pen = 0, com = 0, can = 0;
+  const ts = {mainSignInstalls:{t:0,c:0},safetySignInstalls:{t:0,c:0},onMarketRiders:{t:0,c:0},mainSignRemovals:{t:0,c:0}};
+  const all = [];
+  Object.entries(A.orders).forEach(([type, rows]) => rows.forEach(row => {
+    tot++; if (ts[type]) ts[type].t++;
+    const done = isDone(row), canc = isCanc(row);
+    if (done) { com++; if (ts[type]) ts[type].c++; }
+    else if (canc) can++;
     else pen++;
-    all.push({type,row});
+    all.push({type, row});
   }));
-  set('s-tot',tot); set('s-pen',pen); set('s-com',com); set('s-can',can);
-  [['msi','mainSignInstalls'],['ssi','safetySignInstalls'],['omr','onMarketRiders'],['msr','mainSignRemovals']].forEach(([k,t])=>{
-    const s=ts[t]; set('tc-'+k,s.t);
-    const p=s.t?Math.round(s.c/s.t*100):0;
-    document.getElementById('pb-'+k).style.width=p+'%';
-    document.getElementById('ts-'+k).textContent=s.c+' of '+s.t+' completed ('+p+'%)';
+  set('s-tot', tot); set('s-pen', pen); set('s-com', com); set('s-can', can);
+  [['msi','mainSignInstalls'],['ssi','safetySignInstalls'],['omr','onMarketRiders'],['msr','mainSignRemovals']].forEach(([k,t]) => {
+    const s = ts[t]; set('tc-'+k, s.t);
+    const p = s.t ? Math.round(s.c/s.t*100) : 0;
+    document.getElementById('pb-'+k).style.width = p + '%';
+    document.getElementById('ts-'+k).textContent = s.t ? s.c + ' of ' + s.t + ' completed (' + p + '%)' : 'No data yet';
   });
-  const tbody=document.getElementById('rec-body');
-  const recent=all.slice(-10).reverse();
-  if(!recent.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">&#128203;</div><p>No orders yet.</p></div></td></tr>';return;}
-  tbody.innerHTML=recent.map(({type,row})=>{
-    const num=row['#']||'',proj=row['Project']||row['Street Address']||'',pm=row['PM']||'',date=(row['Synced At']||'').toString().split(',')[0];
+  const tbody = document.getElementById('rec-body');
+  const recent = all.slice(-10).reverse();
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="ei">&#128203;</div><p>No orders yet — upload from Ashley's email to get started.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = recent.map(({type, row}) => {
+    const num = row['number'] || row['#'] || '';
+    const proj = row['project'] || row['streetAddress'] || '';
+    const pm = row['pm'] || row['PM'] || '';
+    const date = row['addedDate'] || '';
     return `<tr><td style="font-family:var(--fm);font-size:.78rem">${esc(num)}</td><td style="font-size:.73rem;color:var(--g500)">${tl(type)}</td><td>${esc(proj)}</td><td>${esc(pm)}</td><td style="font-size:.76rem;color:var(--g400)">${esc(date)}</td><td>${badge(getStatus(row))}</td></tr>`;
   }).join('');
 }
 
 // ── ORDERS TAB ────────────────────────────────────────────────
 function setType(t) {
-  A.otype=t;
-  document.querySelectorAll('.ttb').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+  A.otype = t;
+  document.querySelectorAll('.ttb').forEach(b => b.classList.toggle('active', b.dataset.t === t));
   renderOrders();
 }
 
 function renderOrders() {
-  const type=A.otype,cfg=TC[type];
-  const q=(document.getElementById('osrch')?.value||'').toLowerCase();
-  const sf=document.getElementById('ofl')?.value||'';
-  let rows=[...(A.orders[type]||[])];
-  if(q) rows=rows.filter(r=>Object.values(r).join(' ').toLowerCase().includes(q));
-  if(sf) rows=rows.filter(r=>getStatus(r)===sf);
-  const cols=[...cfg.gcols,'Status'];
-  document.getElementById('oth').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
-  const tb=document.getElementById('otb');
-  if(!rows.length){tb.innerHTML=`<tr><td colspan="${cols.length}"><div class="empty"><div class="ei">&#128235;</div><p>No orders for this filter.</p></div></td></tr>`;return;}
-  tb.innerHTML=rows.map(row=>{
-    const s=getStatus(row);
-    return '<tr class="'+(s==='cancelled'?'cxl':'')+'">'
-      +cols.map(c=>c==='Status'?`<td>${badge(s)}</td>`:`<td>${esc(String(row[c]||''))}</td>`).join('')+'</tr>';
+  loadStorage();
+  const type = A.otype, cfg = CFG[type];
+  const q = (document.getElementById('osrch')?.value || '').toLowerCase();
+  const sf = document.getElementById('ofl')?.value || '';
+  let rows = [...(A.orders[type] || [])];
+  if (q) rows = rows.filter(r => Object.values(r).join(' ').toLowerCase().includes(q));
+  if (sf) rows = rows.filter(r => getStatus(r) === sf);
+  const displayCols = [...cfg.rcols.map(c => c.l), 'Status'];
+  document.getElementById('oth').innerHTML = '<tr>' + displayCols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  const tb = document.getElementById('otb');
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="${displayCols.length}"><div class="empty"><div class="ei">&#128235;</div><p>No orders here yet. Upload a screenshot to add some.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map((row, ri) => {
+    const s = getStatus(row);
+    return '<tr class="' + (s === 'cancelled' ? 'cxl' : '') + '">'
+      + cfg.rcols.map(c => {
+          if (c.fn) return `<td>${c.fn(row[c.k])}</td>`;
+          return `<td contenteditable="true" oninput="editOrder('${type}',${ri},'${c.k}',this)">${esc(String(row[c.k]||''))}</td>`;
+        }).join('')
+      + `<td>${badge(s)}</td></tr>`;
   }).join('');
+}
+
+function editOrder(type, i, k, cell) {
+  if (A.orders[type][i]) {
+    A.orders[type][i][k] = cell.textContent;
+    saveStorage(type);
+  }
+}
+
+// ── CLEAR ──────────────────────────────────────────────────────
+function clearType() {
+  if (!confirm('Clear ALL ' + CFG[A.otype].label.replace(/&#[0-9]+;\s?/,'') + ' orders? This cannot be undone.')) return;
+  A.orders[A.otype] = [];
+  saveStorage(A.otype);
+  renderOrders(); dash();
+  toast('Cleared ' + A.otype, 'info');
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL orders from all 4 tabs? This cannot be undone.')) return;
+  TYPES.forEach(t => { A.orders[t] = []; saveStorage(t); });
+  dash(); updateStorageStats();
+  toast('All data cleared', 'info');
 }
 
 // ── EXPORT CSV ────────────────────────────────────────────────
 function exportCSV() {
-  const rows=A.orders[A.otype]||[];
-  if(!rows.length){toast('No orders to export','info');return;}
-  const keys=Object.keys(rows[0]);
-  const csv=[keys.join(','),...rows.map(r=>keys.map(k=>'"'+(r[k]||'').toString().replace(/"/g,'""')+'"').join(','))].join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=A.otype+'-'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click(); toast('CSV downloaded!','success');
+  const rows = A.orders[A.otype] || [];
+  if (!rows.length) { toast('No orders to export', 'info'); return; }
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => '"' + (r[k]||'').toString().replace(/"/g,'""') + '"').join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = A.otype + '-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); toast('CSV downloaded!', 'success');
 }
 
-// ── SETUP SHEETS ──────────────────────────────────────────────
-async function setupSheets() {
-  toast('Setting up sheets…','info');
+// ── SETTINGS ─────────────────────────────────────────────────
+function updateStorageStats() {
+  loadStorage();
+  [['msi','mainSignInstalls'],['ssi','safetySignInstalls'],['omr','onMarketRiders'],['msr','mainSignRemovals']].forEach(([k,t]) => {
+    const el = document.getElementById('st-'+k);
+    if (el) el.textContent = (A.orders[t]||[]).length + ' orders';
+  });
+}
+
+// ── CONNECTION CHECK ──────────────────────────────────────────
+async function checkConn() {
+  setDot('api','chk'); setPill('p-api','chk','Checking…');
   try {
-    const r=await fetch('/api/sheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'setup'})});
-    const d=await r.json();
-    if(d.success) toast('✓ '+d.message,'success');
-    else toast('Error: '+d.error,'error');
-  } catch(e) { toast('Failed: '+e.message,'error'); }
+    const r = await fetch('/api/extract', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ping:1,type:'mainSignInstalls'})});
+    const d = await r.json();
+    const ok = !(d.error && d.error.includes('ANTHROPIC_API_KEY'));
+    setDot('api', ok ? 'ok' : 'err');
+    setPill('p-api', ok ? 'ok' : 'err', ok ? 'Connected' : 'Not configured — add ANTHROPIC_API_KEY to Vercel');
+  } catch { setDot('api','err'); setPill('p-api','err','Error'); }
 }
-
-// ── GAS COPY ──────────────────────────────────────────────────
-function copyGAS() {
-  navigator.clipboard.writeText(GAS).then(()=>toast('Apps Script code copied!','success'));
-}
+function setDot(k,s){ document.getElementById('dot-'+k).className='dot '+s; }
+function setPill(id,s,l){ const e=document.getElementById(id); if(e){e.className='pill '+s; e.textContent=l;} }
 
 // ── HELPERS ───────────────────────────────────────────────────
-function isDone(r) { return !!(r['Date Completed']||r['Date Removed']); }
-function isCanc(r) { return r['Cancelled']==='Yes'||(r['Notes']||'').toLowerCase().includes('cancel'); }
+function isDone(r) { return !!(r['dateCompleted']||r['dateRemoved']||r['Date Completed']||r['Date Removed']); }
+function isCanc(r) { return r['cancelled']===true||r['Cancelled']==='Yes'||(r['notes']||r['Notes']||'').toLowerCase().includes('cancel'); }
 function getStatus(r) { return isCanc(r)?'cancelled':isDone(r)?'completed':'pending'; }
 function badge(s) {
   return `<span class="bx ${s}">${{completed:'Completed',pending:'Pending',cancelled:'Cancelled'}[s]||s}</span>`;
 }
 function tl(t) {
-  return {mainSignInstalls:'Install',safetySignInstalls:'Safety',onMarketRiders:'Rider',mainSignRemovals:'Removal',urgentRequests:'Urgent'}[t]||t;
+  return {mainSignInstalls:'Main Install',safetySignInstalls:'Safety',onMarketRiders:'Rider',mainSignRemovals:'Removal'}[t]||t;
 }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function set(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; }
 function show(id,v) { const e=document.getElementById(id); if(e) e.style.display=v?'':'none'; }
-function refreshAll() { checkConn(); loadOrders(); toast('Refreshed','info'); }
+function refreshAll() { loadStorage(); dash(); checkConn(); toast('Refreshed','info'); }
 
 // ── TOAST ─────────────────────────────────────────────────────
-function toast(msg,type='info') {
-  const tc=document.getElementById('tc');
-  const el=document.createElement('div');
-  el.className='toast '+type;
-  el.innerHTML=`<span>${{success:'✓',error:'✗',info:'ℹ'}[type]||'•'}</span><span>${msg}</span>`;
+function toast(msg, type='info') {
+  const tc = document.getElementById('tc');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${{success:'✓',error:'✗',info:'ℹ'}[type]||'•'}</span><span>${msg}</span>`;
   tc.appendChild(el);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300);},3500);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3500);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
+loadStorage();
+dash();
 checkConn();
-loadOrders();
 </script>
 </body>
 </html>
