@@ -1,3 +1,9 @@
 {
-  "version": 2
+  "functions": {
+    "api/extract.js": { "maxDuration": 30 },
+    "api/sheets.js": { "maxDuration": 15 }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
