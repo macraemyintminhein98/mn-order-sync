@@ -255,6 +255,16 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
         <div class="cat-info"><div class="cat-name">Main Sign Removals</div><div class="cat-desc">Remove by date · date removed</div></div>
         <div class="cat-check" id="chk-mainSignRemovals"></div>
       </div>
+      <div class="cat-card" id="cat-urgentRequests" onclick="selectCat('urgentRequests')">
+        <span class="cat-icon">&#9889;</span>
+        <div class="cat-info"><div class="cat-name">Urgent / One-off Requests</div><div class="cat-desc">Damaged signs · rush installs · date changes</div></div>
+        <div class="cat-check" id="chk-urgentRequests"></div>
+      </div>
+      <div class="cat-card" id="cat-fullEmail" onclick="selectCat('fullEmail')" style="border-style:dashed">
+        <span class="cat-icon">&#128640;</span>
+        <div class="cat-info"><div class="cat-name">Full Email — Auto-Detect</div><div class="cat-desc">Scans ALL tables at once · works with PDFs</div></div>
+        <div class="cat-check" id="chk-fullEmail"></div>
+      </div>
     </div>
   </div>
   <div class="upload-step">
@@ -266,11 +276,11 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
       ondrop="drop(event)">
       <span class="ui">&#128248;</span>
       <h3 id="uz-title">Select a category above first</h3>
-      <p>PNG, JPG, WebP — auto-converts for best AI accuracy</p>
+      <p>PNG, JPG, WebP or <strong>PDF</strong> (multi-page supported)</p>
       <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Browse Files</button>
       <div class="uz-hint" id="uz-hint"></div>
     </div>
-    <input type="file" id="fi" accept="image/*" onchange="onFile(event)" style="display:none">
+    <input type="file" id="fi" accept="image/*,application/pdf" onchange="onFile(event)" style="display:none">
   </div>
   <div id="proc" style="display:none">
     <div class="rs" style="text-align:center;padding:36px">
@@ -309,6 +319,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="ttb" data-t="safetySignInstalls" onclick="setType('safetySignInstalls')">&#9940; Safety Signs</button>
     <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">&#127979; Riders</button>
     <button class="ttb" data-t="mainSignRemovals" onclick="setType('mainSignRemovals')">&#10060; Removals</button>
+    <button class="ttb" data-t="urgentRequests" onclick="setType('urgentRequests')">&#9889; Urgent</button>
   </div>
   <div class="tw"><table>
     <thead id="oth"></thead>
@@ -399,6 +410,13 @@ CREATE TABLE IF NOT EXISTS main_sign_removals (
   number TEXT, project TEXT, pm TEXT,
   remove_by_date TEXT, date_removed TEXT,
   added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS urgent_requests (
+  id SERIAL PRIMARY KEY,
+  number TEXT, street_address TEXT, pm TEXT,
+  request TEXT, date_submitted TEXT, date_completed TEXT,
+  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
 );`;
 
 // ── COLUMN DEFINITIONS ────────────────────────────────────────
@@ -424,6 +442,11 @@ const COLS = {
     {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'pm',l:'PM',e:1},
     {k:'remove_by_date',l:'Remove By Date',e:1},{k:'date_removed',l:'Date Removed',e:1},
     {k:'added_date',l:'Added'}
+  ],
+  urgentRequests:[
+    {k:'number',l:'#'},{k:'street_address',l:'Street Address',e:1},{k:'pm',l:'PM',e:1},
+    {k:'request',l:'Request',e:1},{k:'date_submitted',l:'Date Submitted',e:1},
+    {k:'date_completed',l:'Date Completed',e:1},{k:'added_date',l:'Added'}
   ]
 };
 
@@ -447,15 +470,19 @@ const RCOLS = {
   mainSignRemovals:[
     {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'pm',l:'PM',e:1},
     {k:'removeByDate',l:'Remove By Date',e:1},{k:'dateRemoved',l:'Date Removed',e:1}
+  ],
+  urgentRequests:[
+    {k:'number',l:'#'},{k:'streetAddress',l:'Street Address',e:1},{k:'pm',l:'PM',e:1},
+    {k:'request',l:'Request',e:1},{k:'dateSubmitted',l:'Date Submitted',e:1}
   ]
 };
 
-const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals'];
-const LABELS = {mainSignInstalls:'Main Sign Installs',safetySignInstalls:'Safety Sign Installs',onMarketRiders:'On-Market Riders',mainSignRemovals:'Main Sign Removals'};
+const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests'];
+const LABELS = {mainSignInstalls:'Main Sign Installs',safetySignInstalls:'Safety Sign Installs',onMarketRiders:'On-Market Riders',mainSignRemovals:'Main Sign Removals',urgentRequests:'Urgent Requests',fullEmail:'Full Email'};
 
 const A = {
   tab:'dashboard', selCat:null, uploading:false, pending:null,
-  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[]},
+  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[]},
   otype:'mainSignInstalls', dbOk:false
 };
 
@@ -533,14 +560,17 @@ function setPill(id,s,l){const e=document.getElementById(id);if(e){e.className='
 // ── CATEGORY SELECTION ────────────────────────────────────────
 function selectCat(type) {
   A.selCat=type;
-  TYPES.forEach(t=>{
-    document.getElementById('cat-'+t).classList.toggle('selected',t===type);
+  [...TYPES,'fullEmail'].forEach(t=>{
+    const card=document.getElementById('cat-'+t);
+    if(!card)return;
+    card.classList.toggle('selected',t===type);
     const c=document.getElementById('chk-'+t);
-    c.innerHTML=t===type?'&#10003;':'';
+    if(c)c.innerHTML=t===type?'&#10003;':'';
   });
   const uz=document.getElementById('uz');
   uz.classList.remove('disabled');
-  document.getElementById('uz-title').textContent='Drop '+LABELS[type]+' screenshot here';
+  const what=type==='fullEmail'?'full email screenshot or PDF':LABELS[type]+' screenshot or PDF';
+  document.getElementById('uz-title').textContent='Drop '+what+' here';
   document.getElementById('uz-hint').textContent='Selected: '+LABELS[type];
 }
 
@@ -559,17 +589,84 @@ async function doFile(file) {
   if(A.uploading)return; A.uploading=true;
   show('uz',false); show('proc',true); show('rev',false);
   document.getElementById('rev-tables').innerHTML='';
-  document.getElementById('proc-msg').textContent='Scanning with AI — reading '+LABELS[A.selCat]+' table…';
+  const isPdf = file.type==='application/pdf'||/\.pdf$/i.test(file.name);
   try {
-    const b64=await toJpeg(file);
-    const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:b64,mediaType:'image/jpeg',type:A.selCat})});
-    if(!r.ok){const d=await r.json();throw new Error(d.error||'OCR failed');}
-    const data=await r.json();
-    A.pending={type:A.selCat,rows:data.rows||[]};
+    // Build list of page images (1 for normal image, N for PDF)
+    let pages;
+    if(isPdf){
+      document.getElementById('proc-msg').textContent='Rendering PDF pages…';
+      pages = await pdfToJpegs(file);
+    } else {
+      pages = [await toJpeg(file)];
+    }
+
+    // Extract per page and merge
+    const merged = A.selCat==='fullEmail'
+      ? {mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[]}
+      : {rows:[]};
+    let usedModel='';
+    for(let p=0;p<pages.length;p++){
+      document.getElementById('proc-msg').textContent='AI scanning page '+(p+1)+' of '+pages.length+'…';
+      const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:pages[p],mediaType:'image/jpeg',type:A.selCat})});
+      if(!r.ok){const d=await r.json();throw new Error(d.error||'OCR failed on page '+(p+1));}
+      const data=await r.json();
+      usedModel=data._model||usedModel;
+      if(A.selCat==='fullEmail'){
+        for(const k of Object.keys(merged)) merged[k].push(...(data[k]||[]));
+      } else {
+        merged.rows.push(...(data.rows||[]));
+      }
+    }
+
+    // Dedupe by order number within each type
+    const dedupe = arr=>{
+      const seen=new Set();
+      return arr.filter(r=>{const k=r.number+'|'+(r.project||r.streetAddress||'');if(!r.number)return true;if(seen.has(k))return false;seen.add(k);return true;});
+    };
+    let total=0;
+    if(A.selCat==='fullEmail'){
+      for(const k of Object.keys(merged)){merged[k]=dedupe(merged[k]);total+=merged[k].length;}
+      A.pending={multi:true,data:merged};
+    } else {
+      merged.rows=dedupe(merged.rows);total=merged.rows.length;
+      A.pending={type:A.selCat,rows:merged.rows};
+    }
     showRev(A.pending);
-    toast((data.rows||[]).length+' rows extracted'+(data._model?' via '+data._model.split('/').pop():''),'success');
+    toast(total+' rows extracted'+(usedModel?' via '+usedModel.split('/').pop():''),'success');
   }catch(err){toast('Error: '+err.message,'error');show('uz',true);}
   finally{A.uploading=false;show('proc',false);document.getElementById('fi').value='';}
+}
+
+// Lazy-load pdf.js and render every page to JPEG base64
+let _pdfjs=null;
+async function loadPdfjs(){
+  if(_pdfjs)return _pdfjs;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=res;s.onerror=()=>rej(new Error('Could not load PDF library'));
+    document.head.appendChild(s);
+  });
+  _pdfjs=window['pdfjsLib'];
+  _pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return _pdfjs;
+}
+async function pdfToJpegs(file){
+  const pdfjs=await loadPdfjs();
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjs.getDocument({data:buf}).promise;
+  const out=[];
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const vp=page.getViewport({scale:2});
+    const c=document.createElement('canvas');
+    c.width=vp.width;c.height=vp.height;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    out.push(c.toDataURL('image/jpeg',0.92).split(',')[1]);
+  }
+  return out;
 }
 
 async function toJpeg(file){
@@ -591,6 +688,7 @@ async function toJpeg(file){
 
 // ── REVIEW ────────────────────────────────────────────────────
 function showRev(pending){
+  if(pending.multi){showRevMulti(pending.data);return;}
   const {type,rows}=pending;
   const cols=RCOLS[type];
   const cont=document.getElementById('rev-tables');
@@ -627,11 +725,49 @@ function updP(cell){
   if(A.pending&&A.pending.rows[i])A.pending.rows[i][k]=cell.textContent;
 }
 function togCxl(i,td){
-  if(!A.pending||!A.pending.rows[i])return;
-  const nv=!A.pending.rows[i].cancelled;
-  A.pending.rows[i].cancelled=nv;
+  if(!A.pending)return;
+  const rows=A.pending.multi?A.pending.data.mainSignInstalls:A.pending.rows;
+  if(!rows||!rows[i])return;
+  const nv=!rows[i].cancelled;
+  rows[i].cancelled=nv;
   td.innerHTML=nv?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>';
   td.closest('tr').classList.toggle('cxl',nv);
+}
+
+function showRevMulti(data){
+  const cont=document.getElementById('rev-tables');
+  cont.innerHTML='';
+  let total=0;
+  for(const type of TYPES){
+    const rows=data[type]||[];
+    if(!rows.length)continue;
+    total+=rows.length;
+    const cols=RCOLS[type];
+    const s=document.createElement('div');s.className='rs';
+    s.innerHTML=`<div class="rh"><span class="rtn">${LABELS[type]}</span><span class="rc">${rows.length} row${rows.length>1?'s':''}</span></div>`
+      +(type==='mainSignInstalls'?'<div class="rnote">&#9888; Orange rows = Cancelled. Click the Cancelled cell to toggle.</div>':'')
+      +`<div class="tw"><table><thead><tr>${cols.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody id="rvm-${type}"></tbody></table></div>`;
+    cont.appendChild(s);
+    const tb=document.getElementById('rvm-'+type);
+    rows.forEach((row,i)=>{
+      const tr=document.createElement('tr');
+      if(row.cancelled)tr.classList.add('cxl');
+      tr.innerHTML=cols.map(c=>{
+        const v=row[c.k]!==undefined?String(row[c.k]):'';
+        if(c.tog)return`<td style="cursor:pointer" onclick="togCxl(${i},this)" title="Click to toggle">${row[c.k]?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>'}</td>`;
+        if(c.e)return`<td contenteditable="true" data-t="${type}" data-i="${i}" data-k="${c.k}" oninput="updPM(this)">${esc(v)}</td>`;
+        return`<td>${esc(v)}</td>`;
+      }).join('');
+      tb.appendChild(tr);
+    });
+  }
+  if(!total)cont.innerHTML='<div class="empty"><div class="ei">&#129300;</div><p>No tables found in this file.</p></div>';
+  document.getElementById('rev-sum').textContent=total+' row'+(total===1?'':'s')+' across all tables';
+  show('rev',true);
+}
+function updPM(cell){
+  const t=cell.dataset.t,i=parseInt(cell.dataset.i),k=cell.dataset.k;
+  if(A.pending&&A.pending.multi&&A.pending.data[t]&&A.pending.data[t][i])A.pending.data[t][i][k]=cell.textContent;
 }
 function clearRev(){
   A.pending=null;show('rev',false);show('uz',true);
@@ -640,15 +776,27 @@ function clearRev(){
 
 // ── SAVE TO DB ────────────────────────────────────────────────
 async function saveRows(){
-  if(!A.pending||!A.pending.rows.length){toast('Nothing to save','info');return;}
+  if(!A.pending){toast('Nothing to save','info');return;}
   const btn=document.getElementById('sbtn');
   btn.disabled=true;btn.textContent='Saving…';
-  const saveType=A.pending.type;
   try{
-    const d=await dbInsert(saveType,A.pending.rows);
-    toast('&#10003; '+d.inserted+' orders saved to database!','success');
-    clearRev();
-    dash();
+    if(A.pending.multi){
+      let saved=0;const errs=[];
+      for(const type of TYPES){
+        const rows=A.pending.data[type]||[];
+        if(!rows.length)continue;
+        try{const d=await dbInsert(type,rows);saved+=d.inserted;}
+        catch(e){errs.push(LABELS[type]+': '+e.message);}
+      }
+      if(errs.length)toast('Partial save ('+saved+' rows). '+errs.join(' | '),'error');
+      else toast('&#10003; '+saved+' orders saved across all tables!','success');
+      if(saved>0){clearRev();dash();}
+    } else {
+      if(!A.pending.rows.length){toast('Nothing to save','info');return;}
+      const d=await dbInsert(A.pending.type,A.pending.rows);
+      toast('&#10003; '+d.inserted+' orders saved to database!','success');
+      clearRev();dash();
+    }
   }catch(e){toast('Save failed: '+e.message,'error');}
   finally{btn.disabled=false;btn.textContent='&#10003; Save to Database';}
 }
@@ -704,7 +852,9 @@ function renderOrders(){
   let rows=[...(A.orders[type]||[])];
   if(q)rows=rows.filter(r=>Object.values(r).join(' ').toLowerCase().includes(q));
   if(sf)rows=rows.filter(r=>getStatus(r)===sf);
-  const dispCols=[...cols,{k:'_status',l:'Status',fn:(_,r)=>badge(getStatus(r))},{k:'_del',l:'',fn:(_,r)=>`<button class="btn bred bs" onclick="delRow('${type}',${r.id})">&#10005;</button>`}];
+  const dispCols=[...cols,{k:'_status',l:'Status',fn:(_,r)=>badge(getStatus(r))}];
+  if(type==='mainSignInstalls')dispCols.push({k:'_rider',l:'Rider',fn:(_,r)=>`<button class="btn bh bs" title="Copy MN02 rider text for design" onclick="copyRider(${r.id})">&#128203;</button>`});
+  dispCols.push({k:'_del',l:'',fn:(_,r)=>`<button class="btn bred bs" onclick="delRow('${type}',${r.id})">&#10005;</button>`});
   document.getElementById('oth').innerHTML='<tr>'+dispCols.map(c=>`<th>${c.l}</th>`).join('')+'</tr>';
   const tb=document.getElementById('otb');
   if(!rows.length){tb.innerHTML=`<tr><td colspan="${dispCols.length}"><div class="empty"><div class="ei">&#128235;</div><p>No orders here yet.</p></div></td></tr>`;return;}
@@ -728,6 +878,16 @@ async function editRow(type,id,field,cell){
     if(row)row[field]=cell.textContent;
   }catch(e){toast('Update failed: '+e.message,'error');}
 }
+function copyRider(id){
+  const r=A.orders.mainSignInstalls.find(x=>x.id===id);
+  if(!r)return;
+  const lao=(r.lao_name||'').toUpperCase();
+  const txt=r.project+'\n'
+    +'PRESALES INQUIRIES CALL: 425-979-7331\n'
+    +'TO SELL YOUR HOME AS-IS'+(lao?' CALL '+lao+' AT:':' CALL:')+' '+(r.lao_phone||'(xxx) xxx-xxxx');
+  navigator.clipboard.writeText(txt).then(()=>toast('MN02 rider text copied — paste into your design','success'));
+}
+
 async function togDbCxl(type,id,td){
   const row=A.orders[type].find(r=>r.id===id);
   if(!row)return;

@@ -1,60 +1,60 @@
 // OpenRouter vision OCR with automatic model fallback chain
 const PROMPTS = {
-  mainSignInstalls: `Extract the "Main Sign Installs (New Land)" table from this screenshot.
+  mainSignInstalls: `Extract the "Main Sign Installs (New Land)" table from this image.
 Return ONLY valid JSON, no markdown. Every row including orange/cancelled ones.
-{
-  "rows": [
-    { "number":"740","project":"1923 5th St","city":"Kirkland","pm":"Chris S",
-      "possessionDate":"5/16/2026","laoName":"Alex Murray","laoPhone":"509-630-8652",
-      "dateCompleted":"","notes":"LAO-TBD","cancelled":false }
-  ]
-}
-Set cancelled=true for orange-highlighted rows or rows with "Project Cancelled" in notes. Empty dateCompleted = "".`,
+{"rows":[{"number":"752","project":"9004 NE 42nd St","city":"Yarrow Point","pm":"Dalton B","possessionDate":"6/30/2026","laoName":"George Florit","laoPhone":"425-830-2777","dateCompleted":"","notes":"","cancelled":false}]}
+Set cancelled=true for orange-highlighted rows or "Project Cancelled" notes. PM may be "TBD". Empty cells = "".
+If this table is not in the image, return {"rows":[]}.`,
 
-  safetySignInstalls: `Extract the "Safety Sign Installs" table from this screenshot.
+  safetySignInstalls: `Extract the "Safety Sign Installs" table from this image.
 Return ONLY valid JSON, no markdown.
-{
-  "rows": [
-    { "number":"684","project":"4250 189th Ave SE","city":"Issaquah","pm":"Drew H",
-      "constructionStartDate":"6/4/2026","dateCompleted":"" }
-  ]
-}
-Empty dateCompleted = "".`,
+{"rows":[{"number":"684","project":"4250 189th Ave SE","city":"Issaquah","pm":"Drew H","constructionStartDate":"6/8/2026","dateCompleted":"5/3/2026"}]}
+Empty cells = "". If this table is not in the image, return {"rows":[]}.`,
 
-  onMarketRiders: `Extract the "On-Market Riders Installs" table from this screenshot.
+  onMarketRiders: `Extract the "On-Market Riders Installs" table from this image.
 Return ONLY valid JSON, no markdown.
-{
-  "rows": [
-    { "number":"664","project":"3120 109th Ave SE","pm":"Ryan G",
-      "listingDate":"EST 5/28/2026","dateCompleted":"","notes":"" }
-  ]
-}
-Preserve EST prefix. Empty dateCompleted = "".`,
+{"rows":[{"number":"664","project":"3120 109th Ave SE","pm":"Ryan G","listingDate":"EST 5/28/2026","dateCompleted":"","notes":""}]}
+Preserve EST prefix. Empty cells = "". If the section says "None currently scheduled" or the table is absent, return {"rows":[]}.`,
 
-  mainSignRemovals: `Extract the "Main Sign Removals" table from this screenshot.
+  mainSignRemovals: `Extract the "Main Sign Removals" table from this image.
 Return ONLY valid JSON, no markdown.
+{"rows":[{"number":"421","project":"12211 NE 134th St","pm":"Spencer W","removeByDate":"5/31/2026","dateRemoved":""}]}
+Empty cells = "". If this table is not in the image, return {"rows":[]}.`,
+
+  urgentRequests: `Extract any urgent/one-off request table from this image. These have columns: #, Street Address, PM, Request, Date Submitted.
+Return ONLY valid JSON, no markdown.
+{"rows":[{"number":"618","streetAddress":"17716 NE 12th St","pm":"Zach N","request":"Safety sign is damaged and will need to be replaced","dateSubmitted":"6/4/2026"}]}
+If no such table is in the image, return {"rows":[]}.`,
+
+  fullEmail: `This is a page from an order email sent by MN Custom Homes to SignPros. It may contain any of these tables:
+1. "Main Sign Installs (New Land)" — #, Project, City, PM, Possession date, LAO to list on rider, LAO's #, Date Completed (orange rows = cancelled)
+2. "Safety Sign Installs" — #, Project, City, PM, Construction Start Date, Date Completed
+3. "On-Market Riders Installs" — #, Project, PM, Listing Date, Date Completed, Notes
+4. "Main Sign Removals" — #, Project, PM, Remove By Date, Date Removed
+5. Urgent request tables — #, Street Address, PM, Request, Date Submitted
+
+Extract ALL tables visible on this page. Return ONLY valid JSON, no markdown:
 {
-  "rows": [
-    { "number":"421","project":"12211 NE 134th St","pm":"Chad A",
-      "removeByDate":"5/31/2026","dateRemoved":"" }
-  ]
+ "mainSignInstalls":[{"number":"","project":"","city":"","pm":"","possessionDate":"","laoName":"","laoPhone":"","dateCompleted":"","notes":"","cancelled":false}],
+ "safetySignInstalls":[{"number":"","project":"","city":"","pm":"","constructionStartDate":"","dateCompleted":""}],
+ "onMarketRiders":[{"number":"","project":"","pm":"","listingDate":"","dateCompleted":"","notes":""}],
+ "mainSignRemovals":[{"number":"","project":"","pm":"","removeByDate":"","dateRemoved":""}],
+ "urgentRequests":[{"number":"","streetAddress":"","pm":"","request":"","dateSubmitted":""}]
 }
-Empty dateRemoved = "".`
+Use empty arrays for table types not on this page. Empty cells = "". Ignore email signatures, logos, badges.`
 };
 
-// Fallback chain: custom model → current free vision models → auto-router
 function buildModelChain() {
   const chain = [];
   if (process.env.OPENROUTER_MODEL) chain.push(process.env.OPENROUTER_MODEL);
   chain.push(
-    'google/gemma-4-31b-it:free',   // free + vision (June 2026)
-    'openrouter/free',              // auto-picks an available free model
-    'google/gemini-2.5-flash'       // paid fallback (~$0.0002/image) only if credits exist
+    'google/gemma-4-31b-it:free',
+    'openrouter/free',
+    'google/gemini-2.5-flash'
   );
   return [...new Set(chain)];
 }
 
-// Robustly pull the first JSON object out of model output
 function extractJson(text) {
   let t = text.trim().replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
   const start = t.indexOf('{');
@@ -92,9 +92,7 @@ export default async function handler(req, res) {
           'X-Title': 'MN Order Sync'
         },
         body: JSON.stringify({
-          model,
-          max_tokens: 4096,
-          temperature: 0,
+          model, max_tokens: 8192, temperature: 0,
           messages: [{
             role: 'user',
             content: [
@@ -105,35 +103,25 @@ export default async function handler(req, res) {
         })
       });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        failures.push(`${model}: HTTP ${response.status}`);
-        continue; // try next model
-      }
-
+      if (!response.ok) { failures.push(`${model}: HTTP ${response.status}`); continue; }
       const data = await response.json();
-      if (data.error) {
-        failures.push(`${model}: ${data.error.message || 'API error'}`);
-        continue;
-      }
-
+      if (data.error) { failures.push(`${model}: ${data.error.message || 'API error'}`); continue; }
       const text = data.choices?.[0]?.message?.content || '';
-      if (!text.trim()) {
-        failures.push(`${model}: empty response`);
-        continue;
-      }
+      if (!text.trim()) { failures.push(`${model}: empty`); continue; }
 
       const parsed = extractJson(text);
-      if (!Array.isArray(parsed.rows)) parsed.rows = [];
+      if (type === 'fullEmail') {
+        for (const k of ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests']) {
+          if (!Array.isArray(parsed[k])) parsed[k] = [];
+        }
+      } else {
+        if (!Array.isArray(parsed.rows)) parsed.rows = [];
+      }
       return res.status(200).json({ ...parsed, _model: model });
-
     } catch (err) {
       failures.push(`${model}: ${err.message}`);
       continue;
     }
   }
-
-  return res.status(502).json({
-    error: 'All AI models failed. Details: ' + failures.join(' | ')
-  });
+  return res.status(502).json({ error: 'All AI models failed: ' + failures.join(' | ') });
 }

@@ -3,7 +3,8 @@ const TABLES = {
   mainSignInstalls:   'main_sign_installs',
   safetySignInstalls: 'safety_sign_installs',
   onMarketRiders:     'on_market_riders',
-  mainSignRemovals:   'main_sign_removals'
+  mainSignRemovals:   'main_sign_removals',
+  urgentRequests:     'urgent_requests'
 };
 
 export default async function handler(req, res) {
@@ -114,6 +115,10 @@ function toDb(type, r) {
   if (type === 'mainSignRemovals') return {
     number: r.number||'', project: r.project||'', pm: r.pm||'',
     remove_by_date: r.removeByDate||'', date_removed: r.dateRemoved||'', added_date: added
+  };
+  if (type === 'urgentRequests') return {
+    number: r.number||'', street_address: r.streetAddress||'', pm: r.pm||'',
+    request: r.request||'', date_submitted: r.dateSubmitted||'', date_completed: r.dateCompleted||'', added_date: added
   };
   return r;
 }
