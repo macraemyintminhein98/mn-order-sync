@@ -111,6 +111,7 @@ td[contenteditable]:focus{background:var(--blue-bg);box-shadow:0 0 0 2px var(--b
 .bx.completed{background:var(--green-bg);color:var(--green)}
 .bx.pending{background:var(--g100);color:var(--g500)}
 .bx.cancelled{background:var(--orange-bg);color:var(--orange)}
+.bx.overdue{background:var(--amber-bg);color:var(--amber)}
 /* BAR */
 .sbar{background:#fff;border-radius:var(--rl);padding:13px 16px;box-shadow:var(--s);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 /* BUTTONS */
@@ -339,6 +340,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <select class="fl" id="ofl" onchange="renderOrders()">
       <option value="">All Status</option>
       <option value="pending">Pending</option>
+      <option value="overdue">Overdue</option>
       <option value="completed">Completed</option>
       <option value="cancelled">Cancelled</option>
     </select>
@@ -362,6 +364,19 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
 
 <!-- PRICE BOOK -->
 <div class="tp" id="tp-prices">
+  <div id="quote-panel" style="display:none" class="rs">
+    <div class="rh"><span class="rtn">&#129534; Quote Builder</span>
+      <div style="display:flex;gap:7px">
+        <button class="btn bg bs" onclick="copyQuote()">&#128203; Copy Quote</button>
+        <button class="btn bh bs" onclick="clearQuote()">&#10005; Clear</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Item</th><th>Qty</th><th style="text-align:right">Unit</th><th style="text-align:right">Total</th><th></th></tr></thead>
+      <tbody id="quote-body"></tbody>
+      <tfoot><tr style="border-top:2px solid var(--g300)"><td colspan="3" style="font-weight:700;font-family:var(--fh)">GRAND TOTAL</td><td style="text-align:right;font-weight:700;font-family:var(--fm)" id="quote-total"></td><td></td></tr></tfoot>
+    </table></div>
+  </div>
   <div class="oc">
     <div class="sb"><input type="text" id="psrch" placeholder="Search item, city, size…" oninput="renderPrices()"></div>
   </div>
@@ -574,6 +589,46 @@ function calcPrice(code, inp){
   if(!t){ out.innerHTML=''; return; }
   out.innerHTML = `<strong>$${t[1].toFixed(2)}</strong>/ea &rarr; <strong style="color:var(--navy)">$${(t[1]*qty).toFixed(2)}</strong> total`;
 }
+// ── QUOTE BUILDER ─────────────────────────────────────────────
+function getQuote(){try{return JSON.parse(localStorage.getItem('mnos-quote'))||[]}catch{return[]}}
+function setQuote(q){localStorage.setItem('mnos-quote',JSON.stringify(q));renderQuote();}
+function addToQuote(code){
+  const item=PRICEBOOK.find(i=>i.code===code);
+  const qty=parseInt(document.getElementById('pqty-'+code)?.value)||0;
+  if(!qty){toast('Enter a quantity first','info');return;}
+  if(qty<item.min){toast('Minimum order for '+code+' is '+item.min,'error');return;}
+  const t=tierFor(item,qty);
+  const q=getQuote().filter(l=>l.code!==code);
+  q.push({code,name:item.name,qty,unit:t[1]});
+  setQuote(q);
+  toast(code+' × '+qty+' added to quote','success');
+}
+function removeQuoteLine(code){setQuote(getQuote().filter(l=>l.code!==code));}
+function clearQuote(){if(getQuote().length&&!confirm('Clear the whole quote?'))return;setQuote([]);}
+function renderQuote(){
+  const q=getQuote();
+  const panel=document.getElementById('quote-panel');
+  if(!q.length){panel.style.display='none';return;}
+  panel.style.display='';
+  let total=0;
+  document.getElementById('quote-body').innerHTML=q.map(l=>{
+    const lt=l.unit*l.qty;total+=lt;
+    return`<tr><td><span style="font-family:var(--fm);font-size:.78rem;color:var(--g500)">${l.code}</span> ${esc(l.name)}</td><td>${l.qty}</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem">$${l.unit.toFixed(2)}</td><td style="text-align:right;font-family:var(--fm);font-size:.78rem">$${lt.toFixed(2)}</td><td><button class="btn bred bs" onclick="removeQuoteLine('${l.code}')">&#10005;</button></td></tr>`;
+  }).join('');
+  document.getElementById('quote-total').textContent='$'+total.toFixed(2);
+}
+function copyQuote(){
+  const q=getQuote();
+  if(!q.length)return;
+  let total=0;
+  const lines=q.map(l=>{const lt=l.unit*l.qty;total+=lt;
+    return l.code+' — '+l.name+'\n  Qty '+l.qty+' @ $'+l.unit.toFixed(2)+' = $'+lt.toFixed(2);});
+  const txt='SIGNPROS QUOTE — MN Custom Homes\nDate: '+new Date().toLocaleDateString('en-US')+'\n\n'
+    +lines.join('\n')+'\n\nTOTAL: $'+total.toFixed(2)
+    +'\n\nPer MN Custom Homes price book. Tax and installation not included.';
+  navigator.clipboard.writeText(txt).then(()=>toast('Quote copied — paste into your email','success'));
+}
+
 function renderPrices(){
   const q = (document.getElementById('psrch')?.value||'').toLowerCase();
   const items = PRICEBOOK.filter(i => !q || (i.code+' '+i.name+' '+i.spec).toLowerCase().includes(q));
@@ -587,8 +642,9 @@ function renderPrices(){
         <table style="width:auto"><thead><tr><th>Qty</th>${i.tiers.map(t=>`<th style="text-align:right">${t[0]}+</th>`).join('')}</tr></thead>
         <tbody><tr><td style="font-weight:600">$/ea</td>${i.tiers.map(t=>`<td style="text-align:right;font-family:var(--fm);font-size:.78rem">$${t[1].toFixed(2)}</td>`).join('')}</tr></tbody></table>
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="number" min="0" placeholder="Qty" oninput="calcPrice('${i.code}',this)" style="width:72px;padding:6px 8px;border:1.5px solid var(--g200);border-radius:var(--r);font-size:.83rem;outline:none">
+          <input type="number" min="0" placeholder="Qty" id="pqty-${i.code}" oninput="calcPrice('${i.code}',this)" style="width:72px;padding:6px 8px;border:1.5px solid var(--g200);border-radius:var(--r);font-size:.83rem;outline:none">
           <span id="pq-${i.code}" style="font-size:.85rem"></span>
+          <button class="btn bp bs" onclick="addToQuote('${i.code}')">+ Quote</button>
         </div>
       </div>
       ${i.min>1?`<div style="font-size:.72rem;color:var(--amber);margin-top:5px">Minimum order: ${i.min}</div>`:''}
@@ -659,7 +715,7 @@ function sw(tab) {
   if(tab==='dashboard') dash();
   if(tab==='orders') loadType(A.otype);
   if(tab==='settings') checkConn();
-  if(tab==='prices') renderPrices();
+  if(tab==='prices'){renderPrices();renderQuote();}
 }
 
 // ── SHARED TEAM STORAGE (/api/store → Upstash Redis) ─────────
@@ -985,6 +1041,7 @@ async function saveRows(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 async function dash(){
+  A._ov=0;
   const results = await Promise.allSettled(TYPES.map(t=>loadType(t,true)));
   const failed = results.find(r=>r.status==='rejected');
   if(failed && !A._dbWarned){ A._dbWarned=true; toast(failed.reason.message,'error'); }
@@ -997,10 +1054,12 @@ async function dash(){
     const done=isDone(row),canc=isCanc(row);
     if(done){com++;if(ts[type])ts[type].c++;}
     else if(canc)can++;
-    else pen++;
+    else{pen++;if(isOverdue(row))A._ov=(A._ov||0)+1;}
     all.push({type,row});
   }));
   set('s-tot',tot);set('s-pen',pen);set('s-com',com);set('s-can',can);
+  const ps=document.querySelector('#s-pen').nextElementSibling;
+  if(ps)ps.innerHTML=A._ov?'<span style="color:var(--amber);font-weight:600">'+A._ov+' overdue!</span>':'Awaiting completion';
   [['msi','mainSignInstalls'],['ssi','safetySignInstalls'],['omr','onMarketRiders'],['msr','mainSignRemovals']].forEach(([k,t])=>{
     const s=ts[t];set('tc-'+k,s.t);
     const p=s.t?Math.round(s.c/s.t*100):0;
@@ -1170,8 +1229,21 @@ function dl(name,content,mime){
 // ── HELPERS ───────────────────────────────────────────────────
 function isDone(r){return !!(r['date_completed']||r['date_removed']||r['dateCompleted']||r['dateRemoved']);}
 function isCanc(r){return r['cancelled']===true||r['Cancelled']==='Yes'||(r['notes']||r['Notes']||'').toLowerCase().includes('cancel');}
-function getStatus(r){return isCanc(r)?'cancelled':isDone(r)?'completed':'pending';}
-function badge(s){return`<span class="bx ${s}">${{completed:'Completed',pending:'Pending',cancelled:'Cancelled'}[s]||s}</span>`;}
+function parseUS(s){
+  if(!s)return null;
+  const m=String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(!m)return null;
+  let y=parseInt(m[3]);if(y<100)y+=2000;
+  return new Date(y,parseInt(m[1])-1,parseInt(m[2]));
+}
+function isOverdue(r){
+  const d=parseUS(r.remove_by_date||r.possession_date||r.construction_start_date||r.listing_date||'');
+  if(!d)return false;
+  const today=new Date();today.setHours(0,0,0,0);
+  return d<today;
+}
+function getStatus(r){return isCanc(r)?'cancelled':isDone(r)?'completed':isOverdue(r)?'overdue':'pending';}
+function badge(s){return`<span class="bx ${s}">${{completed:'Completed',pending:'Pending',cancelled:'Cancelled',overdue:'Overdue'}[s]||s}</span>`;}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function show(id,v){const e=document.getElementById(id);if(e)e.style.display=v?'':'none';}
