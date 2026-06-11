@@ -175,6 +175,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <div class="htitle">MN Order Sync <span>MN Custom Homes</span></div>
     <div class="dots">
       <div class="dg"><div class="dot chk" id="dot-ai"></div>AI OCR</div>
+      <div class="dg"><div class="dot chk" id="dot-db"></div>Team DB</div>
     </div>
     <button class="btn bh bs" onclick="refreshAll()">&#8635; Refresh</button>
   </div>
@@ -333,27 +334,26 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
       <div class="scard">
         <h3>Connection Status</h3>
         <div class="sr"><span class="srl">&#127860; AI OCR (OpenRouter)</span><span class="pill chk" id="p-ai">Checking…</span></div>
-        <div style="margin-top:12px"><button class="btn bp bs" onclick="checkConn()">&#8635; Test</button></div>
+        <div class="sr"><span class="srl">&#128101; Team Database (shared)</span><span class="pill chk" id="p-db">Checking…</span></div>
+        <div style="margin-top:12px"><button class="btn bp bs" onclick="checkConn()">&#8635; Test Both</button></div>
       </div>
       <div class="scard">
-        <h3>Setup — Only 1 Step</h3>
-        <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Add ONE environment variable in Vercel &rarr; Project Settings &rarr; Environment Variables &rarr; Redeploy:</p>
-        <div style="background:var(--g800);border-radius:var(--r);padding:12px 14px;font-family:var(--fm);font-size:.78rem;color:#e2e8f0;line-height:1.9">
-          <span style="color:#94a3b8">OPENROUTER_API_KEY</span> = sk-or-...
-        </div>
-        <p style="font-size:.76rem;color:var(--g400);margin-top:8px">Free key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a> — works with $0 (free vision models). Optional $5 credit unlocks the more reliable paid fallback.</p>
+        <h3>Setup — 2 Steps</h3>
+        <div class="step"><div class="snm2">1</div><div class="sbody"><strong>AI key</strong><p>Vercel &rarr; Settings &rarr; Environment Variables &rarr; add <code>OPENROUTER_API_KEY</code> (free key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a>, works with $0)</p></div></div>
+        <div class="step"><div class="snm2">2</div><div class="sbody"><strong>Team database</strong><p>Vercel &rarr; <strong>Storage</strong> tab &rarr; Create Database &rarr; <strong>Upstash Redis</strong> (free) &rarr; connect to this project. Env vars are added automatically.</p></div></div>
+        <div class="step"><div class="snm2">3</div><div class="sbody"><strong>Redeploy</strong><p>Deployments &rarr; &#8942; on latest &rarr; Redeploy. Both dots turn green.</p></div></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
       <div class="scard">
         <h3>Data Storage</h3>
-        <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Orders are saved in this browser automatically — no database, no account, nothing to set up. Use Backup to move data between computers or keep a safety copy.</p>
+        <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Orders live in one shared team database — everyone who opens this site sees the same data instantly. Backup downloads a safety copy; Restore merges it back (skips duplicates).</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn bg" onclick="backupJSON()">&#128190; Backup All Data (.json)</button>
           <button class="btn bh" onclick="document.getElementById('restore-fi').click()">&#128194; Restore from Backup</button>
           <input type="file" id="restore-fi" accept="application/json" onchange="restoreJSON(event)" style="display:none">
         </div>
-        <p style="font-size:.73rem;color:var(--amber);margin-top:10px">&#9888; Clearing browser data deletes orders — download a backup weekly.</p>
+        <p style="font-size:.73rem;color:var(--g400);margin-top:10px">Tip: download a backup every Friday as a safety net.</p>
       </div>
       <div class="scard">
         <h3>Export CSV</h3>
@@ -452,89 +452,79 @@ function sw(tab) {
   if(tab==='settings') checkConn();
 }
 
-// ── LOCAL STORAGE DATA LAYER (no external database needed) ───
-const LS='mnos-';
-function lsLoad(type){try{return JSON.parse(localStorage.getItem(LS+type))||[]}catch{return[]}}
-function lsSave(type,rows){localStorage.setItem(LS+type,JSON.stringify(rows))}
-function nextId(){const n=parseInt(localStorage.getItem(LS+'seq')||'0')+1;localStorage.setItem(LS+'seq',String(n));return n}
-
-// camelCase OCR keys -> snake_case storage keys (matches table columns)
-function toDb(type,r){
-  const added=r.addedDate||new Date().toLocaleDateString('en-US');
-  if(type==='mainSignInstalls')return{number:r.number||'',project:r.project||'',city:r.city||'',pm:r.pm||'',possession_date:r.possessionDate||'',lao_name:r.laoName||'',lao_phone:r.laoPhone||'',date_completed:r.dateCompleted||'',notes:r.notes||'',cancelled:!!r.cancelled,added_date:added};
-  if(type==='safetySignInstalls')return{number:r.number||'',project:r.project||'',city:r.city||'',pm:r.pm||'',construction_start_date:r.constructionStartDate||'',date_completed:r.dateCompleted||'',added_date:added};
-  if(type==='onMarketRiders')return{number:r.number||'',project:r.project||'',pm:r.pm||'',listing_date:r.listingDate||'',date_completed:r.dateCompleted||'',notes:r.notes||'',added_date:added};
-  if(type==='mainSignRemovals')return{number:r.number||'',project:r.project||'',pm:r.pm||'',remove_by_date:r.removeByDate||'',date_removed:r.dateRemoved||'',added_date:added};
-  if(type==='urgentRequests')return{number:r.number||'',street_address:r.streetAddress||'',pm:r.pm||'',request:r.request||'',date_submitted:r.dateSubmitted||'',date_completed:r.dateCompleted||'',added_date:added};
-  return r;
+// ── SHARED TEAM STORAGE (/api/store → Upstash Redis) ─────────
+async function api(method, qsOrBody) {
+  const opts = method==='GET'
+    ? undefined
+    : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(qsOrBody)};
+  const u = method==='GET' ? '/api/store?type='+qsOrBody : '/api/store';
+  const r = await fetch(u, opts);
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d;
 }
-
-async function dbGet(type){return lsLoad(type);}
-async function dbInsert(type,rows){
-  const all=lsLoad(type);
-  const mapped=rows.map(r=>({...toDb(type,r),id:nextId()}));
-  all.push(...mapped);lsSave(type,all);
-  return{inserted:mapped.length};
-}
-async function dbUpdate(type,id,field,value){
-  const all=lsLoad(type);
-  const row=all.find(r=>r.id===id);
-  if(row){row[field]=value;lsSave(type,all);}
-  return{success:true};
-}
-async function dbDelete(type,id){
-  lsSave(type,lsLoad(type).filter(r=>r.id!==id));
-  return{success:true};
-}
-async function dbClear(type){
-  lsSave(type,[]);
-  return{success:true};
-}
+async function dbGet(type){ return (await api('GET', type)).rows; }
+async function dbInsert(type, rows, raw){ return api('POST', {action:'insert', type, rows, raw:!!raw}); }
+async function dbUpdate(type, id, field, value){ return api('POST', {action:'update', type, id, field, value}); }
+async function dbDelete(type, id){ return api('POST', {action:'delete', type, id}); }
+async function dbClear(type){ return api('POST', {action:'clear', type}); }
 
 // ── BACKUP / RESTORE ─────────────────────────────────────────
-function backupJSON(){
+async function backupJSON(){
   const data={_app:'mn-order-sync',_exported:new Date().toISOString()};
-  TYPES.forEach(t=>data[t]=lsLoad(t));
+  for(const t of TYPES){ try{data[t]=await dbGet(t);}catch{data[t]=A.orders[t]||[];} }
   dl('mn-orders-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(data,null,2),'application/json');
   toast('Backup downloaded — keep it safe!','success');
 }
 function restoreJSON(ev){
   const f=ev.target.files[0];if(!f)return;
   const rd=new FileReader();
-  rd.onload=()=>{
+  rd.onload=async()=>{
     try{
       const data=JSON.parse(rd.result);
       let n=0;
-      TYPES.forEach(t=>{
-        if(Array.isArray(data[t])){
-          const existing=lsLoad(t);
-          const ids=new Set(existing.map(r=>r.id));
-          const add=data[t].filter(r=>!ids.has(r.id));
-          lsSave(t,[...existing,...add]);n+=add.length;
+      for(const t of TYPES){
+        if(Array.isArray(data[t])&&data[t].length){
+          const existing=await dbGet(t);
+          const seen=new Set(existing.map(r=>r.number+'|'+(r.project||r.street_address||'')));
+          const add=data[t].filter(r=>!seen.has(r.number+'|'+(r.project||r.street_address||''))).map(({id,...rest})=>rest);
+          if(add.length){const d=await dbInsert(t,add,true);n+=d.inserted;}
         }
-      });
-      dash();toast('Restored '+n+' orders from backup','success');
-    }catch(e){toast('Invalid backup file','error');}
+      }
+      dash();toast('Restored '+n+' orders into shared database','success');
+    }catch(e){toast('Restore failed: '+e.message,'error');}
   };
   rd.readAsText(f);
   ev.target.value='';
 }
 
 // ── LOAD TYPE ─────────────────────────────────────────────────
-async function loadType(type) {
-  A.orders[type] = await dbGet(type);
-  if(A.tab==='orders') renderOrders();
+async function loadType(type, silent) {
+  try {
+    A.orders[type] = await dbGet(type);
+    if(A.tab==='orders') renderOrders();
+  } catch(e) {
+    if(!silent) toast(e.message,'error');
+    throw e;
+  }
 }
 
 // ── CONNECTION CHECK ──────────────────────────────────────────
 async function checkConn() {
   setDot('ai','chk'); setPill('p-ai','chk','Checking…');
+  setDot('db','chk'); setPill('p-db','chk','Checking…');
   try {
     const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ping:1,type:'mainSignInstalls'})});
     const d=await r.json();
     const ok=!(d.error&&d.error.includes('OPENROUTER_API_KEY'));
     setDot('ai',ok?'ok':'err'); setPill('p-ai',ok?'ok':'err',ok?'Connected':'Add OPENROUTER_API_KEY in Vercel');
   }catch{setDot('ai','err');setPill('p-ai','err','Error');}
+  try {
+    const r=await fetch('/api/store?type=mainSignInstalls');
+    const d=await r.json();
+    if(d.error){setDot('db','err');setPill('p-db','err','Not enabled — see setup below');}
+    else{setDot('db','ok');setPill('p-db','ok','Connected — shared with team');}
+  }catch{setDot('db','err');setPill('p-db','err','Error');}
 }
 function setDot(k,s){document.getElementById('dot-'+k).className='dot '+s;}
 function setPill(id,s,l){const e=document.getElementById(id);if(e){e.className='pill '+s;e.textContent=l;}}
@@ -785,7 +775,10 @@ async function saveRows(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 async function dash(){
-  await Promise.all(TYPES.map(t=>loadType(t)));
+  const results = await Promise.allSettled(TYPES.map(t=>loadType(t,true)));
+  const failed = results.find(r=>r.status==='rejected');
+  if(failed && !A._dbWarned){ A._dbWarned=true; toast(failed.reason.message,'error'); }
+  if(!failed) A._dbWarned=false;
   let tot=0,pen=0,com=0,can=0;
   const ts={mainSignInstalls:{t:0,c:0},safetySignInstalls:{t:0,c:0},onMarketRiders:{t:0,c:0},mainSignRemovals:{t:0,c:0}};
   const all=[];
@@ -817,7 +810,7 @@ async function dash(){
 function setType(t){
   A.otype=t;
   document.querySelectorAll('.ttb').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
-  loadType(t).then(()=>renderOrders());
+  loadType(t).then(()=>renderOrders()).catch(()=>renderOrders());
 }
 
 function renderOrders(){
