@@ -215,6 +215,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="tb active" data-tab="dashboard" onclick="sw('dashboard')">Dashboard</button>
     <button class="tb" data-tab="upload" onclick="sw('upload')">Upload</button>
     <button class="tb" data-tab="orders" onclick="sw('orders')">Orders</button>
+    <button class="tb" data-tab="prices" onclick="sw('prices')">Price Book</button>
     <button class="tb" data-tab="howto" onclick="sw('howto')">How to Use</button>
     <button class="tb" data-tab="settings" onclick="sw('settings')">Settings</button>
   </div>
@@ -359,6 +360,14 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
   </table></div>
 </div>
 
+<!-- PRICE BOOK -->
+<div class="tp" id="tp-prices">
+  <div class="oc">
+    <div class="sb"><input type="text" id="psrch" placeholder="Search item, city, size…" oninput="renderPrices()"></div>
+  </div>
+  <div id="price-list"></div>
+</div>
+
 <!-- HOW TO USE -->
 <div class="tp" id="tp-howto">
   <div style="max-width:760px">
@@ -384,7 +393,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     </div>
     <div class="scard">
       <h3>&#9888;&#65039; Tips</h3>
-      <p style="font-size:.83rem;color:var(--g500);line-height:1.8">&bull; Orange rows in Ashley's emails = cancelled projects — verify the Cancelled toggle after extraction.<br>&bull; If extraction misses rows, crop a screenshot of just that table and upload it under its specific category instead.<br>&bull; Duplicate order numbers are skipped automatically when uploading multi-page threads.<br>&bull; If the AI is rate-limited (busy day), wait a minute and retry — it auto-falls back to other models.</p>
+      <p style="font-size:.83rem;color:var(--g500);line-height:1.8">&bull; Orange rows in Ashley's emails = cancelled projects — verify the Cancelled toggle after extraction.<br>&bull; If extraction misses rows, crop a screenshot of just that table and upload it under its specific category instead.<br>&bull; Duplicate order numbers are skipped automatically when uploading multi-page threads.<br>&bull; If the AI is rate-limited (busy day), wait a minute and retry — it auto-falls back to other models.<br>&bull; Driveway barricade requests (like "#623 Requested Driveway Barricade") come in as <strong>&#9889; Urgent Requests</strong> — extract them with Full Email auto-detect. Pricing is in the <strong>Price Book</strong> tab (MN11).</p>
     </div>
   </div>
 </div>
@@ -530,7 +539,61 @@ const A = {
   otype:'mainSignInstalls', notesCtx:null
 };
 
-// ── USERNAME (asked once, kept on this device) ────────────────
+// ── MN CUSTOM HOMES PRICE BOOK ────────────────────────────────
+const PRICEBOOK = [
+  {code:'MN01', name:'Main Sign Panel', spec:'29"×29" · Plywood · 1 side', min:12, tiers:[[12,123.21],[24,118.41],[48,114.50]]},
+  {code:'MN02', name:'In Construction Rider', spec:'13.5"×29" · Plywood · 1 side · custom name/phone', min:1, tiers:[[1,110.62]]},
+  {code:'MN03', name:'On The Market Rider', spec:'13.5"×29" · Plywood · 1 side · custom message', min:1, tiers:[[1,110.62]]},
+  {code:'MN10', name:'Lock Box Post', spec:"6' · 4×4", min:12, tiers:[[12,57.75],[24,57.75],[48,57.75]]},
+  {code:'MN11', name:'Driveway Barricade', spec:'96"×17" · Plywood · 1 side', min:1, tiers:[[1,254.10],[12,172.20],[24,163.01]], hl:1},
+  {code:'MN12', name:'Safety Sign — Bellevue', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN13', name:'Safety Sign — Bothell', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN14', name:'Safety Sign — Clyde Hill', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,170.89],[3,111.71],[5,90.09],[10,79.75],[25,73.93],[50,71.67]]},
+  {code:'MN15', name:'Safety Sign — Kenmore', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN16', name:'Safety Sign — Kirkland', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN17', name:'Safety Sign — Mercer Island', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN18', name:'Safety Sign — Redmond', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN19', name:'Safety Sign — Sammamish', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN20', name:'Safety Sign — Seattle', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN21', name:'Safety Sign — Woodinville', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]},
+  {code:'MN22', name:'Safety Sign — Yarrow Point', spec:'24"×24" · Plywood · 2 sides', min:1, tiers:[[1,179.43],[3,117.30],[5,94.59],[10,83.74],[25,77.63],[50,75.25]]}
+];
+
+function tierFor(item, qty){
+  let t = null;
+  for(const [q, p] of item.tiers) if(qty >= q) t = [q, p];
+  return t;
+}
+function calcPrice(code, inp){
+  const item = PRICEBOOK.find(i=>i.code===code);
+  const qty = parseInt(inp.value)||0;
+  const out = document.getElementById('pq-'+code);
+  if(!qty){ out.innerHTML=''; return; }
+  if(qty < item.min){ out.innerHTML = `<span style="color:var(--red)">Min order ${item.min}</span>`; return; }
+  const t = tierFor(item, qty);
+  if(!t){ out.innerHTML=''; return; }
+  out.innerHTML = `<strong>$${t[1].toFixed(2)}</strong>/ea &rarr; <strong style="color:var(--navy)">$${(t[1]*qty).toFixed(2)}</strong> total`;
+}
+function renderPrices(){
+  const q = (document.getElementById('psrch')?.value||'').toLowerCase();
+  const items = PRICEBOOK.filter(i => !q || (i.code+' '+i.name+' '+i.spec).toLowerCase().includes(q));
+  document.getElementById('price-list').innerHTML = items.map(i =>
+    `<div class="rs" ${i.hl?'style="border-left:4px solid var(--amber)"':''}>
+      <div class="rh" style="margin-bottom:6px">
+        <span class="rtn"><span style="font-family:var(--fm);color:var(--g500);font-size:.8rem">${i.code}</span> &nbsp;${i.name}</span>
+        <span class="rc">${i.spec}</span>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+        <table style="width:auto"><thead><tr><th>Qty</th>${i.tiers.map(t=>`<th style="text-align:right">${t[0]}+</th>`).join('')}</tr></thead>
+        <tbody><tr><td style="font-weight:600">$/ea</td>${i.tiers.map(t=>`<td style="text-align:right;font-family:var(--fm);font-size:.78rem">$${t[1].toFixed(2)}</td>`).join('')}</tr></tbody></table>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" min="0" placeholder="Qty" oninput="calcPrice('${i.code}',this)" style="width:72px;padding:6px 8px;border:1.5px solid var(--g200);border-radius:var(--r);font-size:.83rem;outline:none">
+          <span id="pq-${i.code}" style="font-size:.85rem"></span>
+        </div>
+      </div>
+      ${i.min>1?`<div style="font-size:.72rem;color:var(--amber);margin-top:5px">Minimum order: ${i.min}</div>`:''}
+    </div>`).join('') || '<div class="empty"><div class="ei">&#128269;</div><p>No items match.</p></div>';
+}
 function userName(force){
   let n = localStorage.getItem('mnos-username');
   if(!n || force){
@@ -596,6 +659,7 @@ function sw(tab) {
   if(tab==='dashboard') dash();
   if(tab==='orders') loadType(A.otype);
   if(tab==='settings') checkConn();
+  if(tab==='prices') renderPrices();
 }
 
 // ── SHARED TEAM STORAGE (/api/store → Upstash Redis) ─────────
