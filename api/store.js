@@ -4,8 +4,16 @@
 const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests'];
 
 function redisCfg() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const env = process.env;
+  let url = env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL;
+  let token = env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN;
+  // Auto-detect any prefix the Vercel/Upstash integration used (e.g. STORAGE_KV_REST_API_URL)
+  if (!url || !token) {
+    for (const k of Object.keys(env)) {
+      if (!url && k.endsWith('REST_API_URL')) url = env[k];
+      if (!token && k.endsWith('REST_API_TOKEN') && !k.includes('READ_ONLY')) token = env[k];
+    }
+  }
   return { url, token };
 }
 
