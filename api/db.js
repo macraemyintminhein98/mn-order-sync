@@ -1,4 +1,4 @@
-// Supabase REST API proxy — no SDK, pure fetch
+// Supabase REST proxy with proper error surfacing
 const TABLES = {
   mainSignInstalls:   'main_sign_installs',
   safetySignInstalls: 'safety_sign_installs',
@@ -8,14 +8,14 @@ const TABLES = {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const url  = process.env.SUPABASE_URL;
-  const key  = process.env.SUPABASE_ANON_KEY;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY;
   if (!url || !key) {
-    return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not set.' });
+    return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not set in Vercel environment variables.' });
   }
 
   const headers = {
@@ -24,57 +24,66 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json',
     'Prefer': 'return=representation'
   };
+  const sb = (table, qs = '') => `${url.replace(/\/$/, '')}/rest/v1/${table}${qs ? '?' + qs : ''}`;
 
-  const sb = (table, qs = '') =>
-    `${url}/rest/v1/${table}${qs ? '?' + qs : ''}`;
+  // Helper: parse Supabase response, surface real errors
+  async function parse(r) {
+    const text = await r.text();
+    let d;
+    try { d = text ? JSON.parse(text) : null; } catch { d = null; }
+    if (!r.ok) {
+      const msg = d?.message || d?.hint || text || `HTTP ${r.status}`;
+      const friendly = /relation .* does not exist/i.test(msg)
+        ? 'Tables not created yet — run the SQL from Settings tab in Supabase SQL Editor.'
+        : msg;
+      throw new Error(friendly);
+    }
+    return d;
+  }
 
   try {
-    // GET /api/db?type=mainSignInstalls  → fetch all rows
     if (req.method === 'GET') {
       const table = TABLES[req.query.type];
       if (!table) return res.status(400).json({ error: 'Invalid type' });
       const r = await fetch(sb(table, 'select=*&order=created_at.asc'), { headers });
-      const d = await r.json();
-      return res.status(200).json({ rows: d });
+      const d = await parse(r);
+      return res.status(200).json({ rows: Array.isArray(d) ? d : [] });
     }
 
-    // POST body: { action, type, rows?, id?, field?, value? }
     if (req.method === 'POST') {
       const { action, type, rows, id, field, value } = req.body;
       const table = TABLES[type];
       if (!table) return res.status(400).json({ error: 'Invalid type' });
 
-      // INSERT multiple rows
       if (action === 'insert') {
+        if (!Array.isArray(rows) || !rows.length) return res.status(400).json({ error: 'No rows to insert' });
         const now = new Date().toISOString();
         const payload = rows.map(r => ({ ...toDb(type, r), created_at: now }));
-        const r = await fetch(sb(table), {
-          method: 'POST', headers,
-          body: JSON.stringify(payload)
-        });
-        const d = await r.json();
-        return res.status(200).json({ success: true, inserted: d.length || rows.length, rows: d });
+        const r = await fetch(sb(table), { method: 'POST', headers, body: JSON.stringify(payload) });
+        const d = await parse(r);
+        return res.status(200).json({ success: true, inserted: Array.isArray(d) ? d.length : rows.length, rows: d });
       }
 
-      // UPDATE a single field on a row
       if (action === 'update') {
-        const r = await fetch(sb(table, `id=eq.${id}`), {
-          method: 'PATCH', headers,
-          body: JSON.stringify({ [field]: value })
+        if (!id || !field) return res.status(400).json({ error: 'Missing id or field' });
+        // whitelist editable columns to prevent junk writes
+        const r = await fetch(sb(table, `id=eq.${encodeURIComponent(id)}`), {
+          method: 'PATCH', headers, body: JSON.stringify({ [field]: value })
         });
-        const d = await r.json();
-        return res.status(200).json({ success: true, row: d[0] });
+        const d = await parse(r);
+        return res.status(200).json({ success: true, row: Array.isArray(d) ? d[0] : d });
       }
 
-      // DELETE a single row
       if (action === 'delete') {
-        await fetch(sb(table, `id=eq.${id}`), { method: 'DELETE', headers });
+        if (!id) return res.status(400).json({ error: 'Missing id' });
+        const r = await fetch(sb(table, `id=eq.${encodeURIComponent(id)}`), { method: 'DELETE', headers });
+        await parse(r);
         return res.status(200).json({ success: true });
       }
 
-      // CLEAR entire table
       if (action === 'clear') {
-        await fetch(sb(table, 'id=gt.0'), { method: 'DELETE', headers });
+        const r = await fetch(sb(table, 'id=gt.0'), { method: 'DELETE', headers });
+        await parse(r);
         return res.status(200).json({ success: true });
       }
 
@@ -83,32 +92,28 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// Map JS camelCase keys → Postgres snake_case columns
 function toDb(type, r) {
+  const added = r.addedDate || new Date().toLocaleDateString('en-US');
   if (type === 'mainSignInstalls') return {
     number: r.number||'', project: r.project||'', city: r.city||'', pm: r.pm||'',
     possession_date: r.possessionDate||'', lao_name: r.laoName||'', lao_phone: r.laoPhone||'',
-    date_completed: r.dateCompleted||'', notes: r.notes||'', cancelled: !!r.cancelled,
-    added_date: r.addedDate || new Date().toLocaleDateString('en-US')
+    date_completed: r.dateCompleted||'', notes: r.notes||'', cancelled: !!r.cancelled, added_date: added
   };
   if (type === 'safetySignInstalls') return {
     number: r.number||'', project: r.project||'', city: r.city||'', pm: r.pm||'',
-    construction_start_date: r.constructionStartDate||'', date_completed: r.dateCompleted||'',
-    added_date: r.addedDate || new Date().toLocaleDateString('en-US')
+    construction_start_date: r.constructionStartDate||'', date_completed: r.dateCompleted||'', added_date: added
   };
   if (type === 'onMarketRiders') return {
     number: r.number||'', project: r.project||'', pm: r.pm||'',
-    listing_date: r.listingDate||'', date_completed: r.dateCompleted||'', notes: r.notes||'',
-    added_date: r.addedDate || new Date().toLocaleDateString('en-US')
+    listing_date: r.listingDate||'', date_completed: r.dateCompleted||'', notes: r.notes||'', added_date: added
   };
   if (type === 'mainSignRemovals') return {
     number: r.number||'', project: r.project||'', pm: r.pm||'',
-    remove_by_date: r.removeByDate||'', date_removed: r.dateRemoved||'',
-    added_date: r.addedDate || new Date().toLocaleDateString('en-US')
+    remove_by_date: r.removeByDate||'', date_removed: r.dateRemoved||'', added_date: added
   };
   return r;
 }

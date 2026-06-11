@@ -333,9 +333,9 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
           <span style="color:#94a3b8">OPENROUTER_API_KEY</span> = sk-or-...<br>
           <span style="color:#94a3b8">SUPABASE_URL</span> = https://xxx.supabase.co<br>
           <span style="color:#94a3b8">SUPABASE_ANON_KEY</span> = eyJ...<br>
-          <span style="color:#94a3b8">OPENROUTER_MODEL</span> = google/gemini-2.0-flash-exp:free
+          <span style="color:#94a3b8">OPENROUTER_MODEL</span> = (optional &mdash; auto fallback built in)
         </div>
-        <p style="font-size:.75rem;color:var(--g400);margin-top:8px">Get OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a>. Gemini 2.0 Flash is FREE.</p>
+        <p style="font-size:.75rem;color:var(--g400);margin-top:8px">Get key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a>. App auto-tries: your custom model &rarr; free vision models &rarr; paid fallback (only if credits added). Works with $0.</p>
       </div>
       <div class="scard">
         <h3>Export Data</h3>
@@ -360,7 +360,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
         <button class="cpb" onclick="copySQL()">Copy</button>
         <pre id="sql-pre"></pre>
       </div>
-      <div class="step" style="margin-top:11px"><div class="snm2">5</div><div class="sbody"><strong>Get OpenRouter key</strong><p><a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a> → Add credit ($5 lasts months) · Set <code>OPENROUTER_MODEL</code> to <code>google/gemini-2.0-flash-exp:free</code> for free OCR</p></div></div>
+      <div class="step" style="margin-top:11px"><div class="snm2">5</div><div class="sbody"><strong>Get OpenRouter key</strong><p><a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a> &mdash; free account works with $0. Optional: add $5 credit for the paid fallback model (more reliable when free tier is rate-limited)</p></div></div>
       <div class="step"><div class="snm2">6</div><div class="sbody"><strong>Redeploy Vercel → done!</strong></div></div>
     </div>
   </div>
@@ -407,7 +407,7 @@ const COLS = {
     {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'city',l:'City',e:1},{k:'pm',l:'PM',e:1},
     {k:'possession_date',l:'Possession Date',e:1},{k:'lao_name',l:'LAO Name',e:1},
     {k:'lao_phone',l:'LAO Phone',e:1},{k:'date_completed',l:'Date Completed',e:1},
-    {k:'notes',l:'Notes',e:1},{k:'cancelled',l:'Cancelled',fn:v=>v?'<span class="bx cancelled">Yes</span>':''},
+    {k:'notes',l:'Notes',e:1},{k:'cancelled',l:'Cancelled',togdb:1},
     {k:'added_date',l:'Added'}
   ],
   safetySignInstalls:[
@@ -433,7 +433,7 @@ const RCOLS = {
     {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'city',l:'City',e:1},{k:'pm',l:'PM',e:1},
     {k:'possessionDate',l:'Possession Date',e:1},{k:'laoName',l:'LAO Name',e:1},
     {k:'laoPhone',l:'LAO Phone',e:1},{k:'dateCompleted',l:'Date Completed',e:1},
-    {k:'notes',l:'Notes',e:1},{k:'cancelled',l:'Cancelled',fn:v=>v?'<span class="bx cancelled">Yes</span>':''}
+    {k:'notes',l:'Notes',e:1},{k:'cancelled',l:'Cancelled',tog:1}
   ],
   safetySignInstalls:[
     {k:'number',l:'#'},{k:'project',l:'Project',e:1},{k:'city',l:'City',e:1},{k:'pm',l:'PM',e:1},
@@ -498,13 +498,13 @@ async function dbClear(type) {
 }
 
 // ── LOAD TYPE ─────────────────────────────────────────────────
-async function loadType(type) {
+async function loadType(type, silent) {
   try {
     A.orders[type] = await dbGet(type);
     if(A.tab==='orders') renderOrders();
-    if(A.tab==='dashboard') dash();
   } catch(e) {
-    toast('DB error: '+e.message,'error');
+    if(!silent) toast('DB error: '+e.message,'error');
+    throw e;
   }
 }
 
@@ -567,7 +567,7 @@ async function doFile(file) {
     const data=await r.json();
     A.pending={type:A.selCat,rows:data.rows||[]};
     showRev(A.pending);
-    toast((data.rows||[]).length+' rows extracted','success');
+    toast((data.rows||[]).length+' rows extracted'+(data._model?' via '+data._model.split('/').pop():''),'success');
   }catch(err){toast('Error: '+err.message,'error');show('uz',true);}
   finally{A.uploading=false;show('proc',false);document.getElementById('fi').value='';}
 }
@@ -611,6 +611,7 @@ function showRev(pending){
     if(row.cancelled)tr.classList.add('cxl');
     tr.innerHTML=cols.map(c=>{
       const v=row[c.k]!==undefined?String(row[c.k]):'';
+      if(c.tog)return`<td style="cursor:pointer" onclick="togCxl(${i},this)" title="Click to toggle">${row[c.k]?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>'}</td>`;
       if(c.fn)return`<td>${c.fn(row[c.k])}</td>`;
       if(c.e)return`<td contenteditable="true" data-i="${i}" data-k="${c.k}" oninput="updP(this)">${esc(v)}</td>`;
       return`<td>${esc(v)}</td>`;
@@ -625,6 +626,13 @@ function updP(cell){
   const i=parseInt(cell.dataset.i),k=cell.dataset.k;
   if(A.pending&&A.pending.rows[i])A.pending.rows[i][k]=cell.textContent;
 }
+function togCxl(i,td){
+  if(!A.pending||!A.pending.rows[i])return;
+  const nv=!A.pending.rows[i].cancelled;
+  A.pending.rows[i].cancelled=nv;
+  td.innerHTML=nv?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>';
+  td.closest('tr').classList.toggle('cxl',nv);
+}
 function clearRev(){
   A.pending=null;show('rev',false);show('uz',true);
   document.getElementById('rev-tables').innerHTML='';
@@ -635,11 +643,11 @@ async function saveRows(){
   if(!A.pending||!A.pending.rows.length){toast('Nothing to save','info');return;}
   const btn=document.getElementById('sbtn');
   btn.disabled=true;btn.textContent='Saving…';
+  const saveType=A.pending.type;
   try{
-    const d=await dbInsert(A.pending.type,A.pending.rows);
+    const d=await dbInsert(saveType,A.pending.rows);
     toast('&#10003; '+d.inserted+' orders saved to database!','success');
     clearRev();
-    loadType(A.pending?.type||A.selCat);
     dash();
   }catch(e){toast('Save failed: '+e.message,'error');}
   finally{btn.disabled=false;btn.textContent='&#10003; Save to Database';}
@@ -647,8 +655,14 @@ async function saveRows(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 async function dash(){
-  // Load all types
-  await Promise.all(TYPES.map(t=>loadType(t).catch(()=>{})));
+  // Load all types silently; surface one banner if DB is down
+  const results = await Promise.allSettled(TYPES.map(t=>loadType(t,true)));
+  const failed = results.find(r=>r.status==='rejected');
+  if(failed && !A._dbWarned){
+    A._dbWarned = true;
+    toast('Database: '+failed.reason.message,'error');
+  }
+  if(!failed) A._dbWarned = false;
   let tot=0,pen=0,com=0,can=0;
   const ts={mainSignInstalls:{t:0,c:0},safetySignInstalls:{t:0,c:0},onMarketRiders:{t:0,c:0},mainSignRemovals:{t:0,c:0}};
   const all=[];
@@ -680,7 +694,7 @@ async function dash(){
 function setType(t){
   A.otype=t;
   document.querySelectorAll('.ttb').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
-  loadType(t).then(()=>renderOrders());
+  loadType(t).then(()=>renderOrders()).catch(()=>renderOrders());
 }
 
 function renderOrders(){
@@ -698,6 +712,7 @@ function renderOrders(){
     const s=getStatus(row);
     return'<tr class="'+(s==='cancelled'?'cxl':'')+'">'
       +dispCols.map(c=>{
+        if(c.togdb)return`<td style="cursor:pointer" onclick="togDbCxl('${type}',${row.id},this)" title="Click to toggle">${row[c.k]?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>'}</td>`;
         if(c.fn)return`<td>${c.fn(row[c.k],row)}</td>`;
         if(c.e)return`<td contenteditable="true" onblur="editRow('${type}',${row.id},'${c.k}',this)">${esc(String(row[c.k]||''))}</td>`;
         return`<td>${esc(String(row[c.k]||''))}</td>`;
@@ -711,6 +726,17 @@ async function editRow(type,id,field,cell){
     await dbUpdate(type,id,field,cell.textContent);
     const row=A.orders[type].find(r=>r.id===id);
     if(row)row[field]=cell.textContent;
+  }catch(e){toast('Update failed: '+e.message,'error');}
+}
+async function togDbCxl(type,id,td){
+  const row=A.orders[type].find(r=>r.id===id);
+  if(!row)return;
+  const nv=!row.cancelled;
+  try{
+    await dbUpdate(type,id,'cancelled',nv);
+    row.cancelled=nv;
+    td.innerHTML=nv?'<span class="bx cancelled">Yes</span>':'<span class="bx pending">No</span>';
+    td.closest('tr').classList.toggle('cxl',nv);
   }catch(e){toast('Update failed: '+e.message,'error');}
 }
 

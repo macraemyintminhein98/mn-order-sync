@@ -1,4 +1,4 @@
-// OpenRouter vision API — no SDK needed, pure fetch
+// OpenRouter vision OCR with automatic model fallback chain
 const PROMPTS = {
   mainSignInstalls: `Extract the "Main Sign Installs (New Land)" table from this screenshot.
 Return ONLY valid JSON, no markdown. Every row including orange/cancelled ones.
@@ -42,6 +42,27 @@ Return ONLY valid JSON, no markdown.
 Empty dateRemoved = "".`
 };
 
+// Fallback chain: custom model → current free vision models → auto-router
+function buildModelChain() {
+  const chain = [];
+  if (process.env.OPENROUTER_MODEL) chain.push(process.env.OPENROUTER_MODEL);
+  chain.push(
+    'google/gemma-4-31b-it:free',   // free + vision (June 2026)
+    'openrouter/free',              // auto-picks an available free model
+    'google/gemini-2.5-flash'       // paid fallback (~$0.0002/image) only if credits exist
+  );
+  return [...new Set(chain)];
+}
+
+// Robustly pull the first JSON object out of model output
+function extractJson(text) {
+  let t = text.trim().replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) throw new SyntaxError('No JSON found');
+  return JSON.parse(t.slice(start, end + 1));
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -57,45 +78,62 @@ export default async function handler(req, res) {
   const prompt = PROMPTS[type];
   if (!prompt) return res.status(400).json({ error: 'Invalid type: ' + type });
 
-  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
+  const models = buildModelChain();
+  const failures = [];
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://mn-order-sync.vercel.app',
-        'X-Title': 'MN Order Sync – SignPros'
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 4096,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: `data:${mediaType};base64,${imageData}` } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
+  for (const model of models) {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://mn-order-sync.vercel.app',
+          'X-Title': 'MN Order Sync'
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 4096,
+          temperature: 0,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: `data:${mediaType};base64,${imageData}` } },
+              { type: 'text', text: prompt }
+            ]
+          }]
+        })
+      });
 
-    if (!response.ok) {
-      const err = await response.text();
-      return res.status(response.status).json({ error: `OpenRouter error: ${err}` });
-    }
+      if (!response.ok) {
+        const errText = await response.text();
+        failures.push(`${model}: HTTP ${response.status}`);
+        continue; // try next model
+      }
 
-    const data = await response.json();
-    let text = data.choices?.[0]?.message?.content?.trim() || '';
-    text = text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
-    const parsed = JSON.parse(text);
-    res.status(200).json(parsed);
-  } catch (err) {
-    if (err instanceof SyntaxError) {
-      res.status(422).json({ error: 'Could not parse table. Try a clearer screenshot or crop just the table.' });
-    } else {
-      res.status(500).json({ error: err.message });
+      const data = await response.json();
+      if (data.error) {
+        failures.push(`${model}: ${data.error.message || 'API error'}`);
+        continue;
+      }
+
+      const text = data.choices?.[0]?.message?.content || '';
+      if (!text.trim()) {
+        failures.push(`${model}: empty response`);
+        continue;
+      }
+
+      const parsed = extractJson(text);
+      if (!Array.isArray(parsed.rows)) parsed.rows = [];
+      return res.status(200).json({ ...parsed, _model: model });
+
+    } catch (err) {
+      failures.push(`${model}: ${err.message}`);
+      continue;
     }
   }
+
+  return res.status(502).json({
+    error: 'All AI models failed. Details: ' + failures.join(' | ')
+  });
 }
