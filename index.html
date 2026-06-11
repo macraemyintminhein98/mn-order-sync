@@ -165,6 +165,36 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
 @keyframes tsi{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
 .toast.out{animation:tfo .3s ease forwards}
 @keyframes tfo{to{transform:translateX(110%);opacity:0}}
+
+/* ── MOBILE / TABLET ── */
+@media(max-width:768px){
+  .hi{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .logo{height:28px}
+  .htitle{font-size:1.05rem}
+  .htitle span{display:none}
+  .dots{gap:7px}
+  .dg{font-size:.68rem}
+  .ni{padding:0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tb{padding:10px 12px;font-size:.78rem;white-space:nowrap}
+  main{padding:12px}
+  .sn{font-size:1.8rem}
+  .sc{padding:13px 14px}
+  .uz{padding:32px 16px}
+  .oc{gap:6px}
+  .btn{padding:7px 12px;font-size:.8rem}
+  .ttabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .ttb{white-space:nowrap}
+  table{font-size:.76rem}
+  td,thead th{padding:6px 7px}
+  td[contenteditable]{min-width:64px}
+  #notes-overlay>div{margin:4vh 10px;max-width:none}
+  .sgrid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .stitle{font-size:.8rem}
+  .cat-card{padding:11px 12px}
+  .cat-icon{font-size:1.2rem}
+}
 </style>
 </head>
 <body>
@@ -185,6 +215,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="tb active" data-tab="dashboard" onclick="sw('dashboard')">Dashboard</button>
     <button class="tb" data-tab="upload" onclick="sw('upload')">Upload</button>
     <button class="tb" data-tab="orders" onclick="sw('orders')">Orders</button>
+    <button class="tb" data-tab="howto" onclick="sw('howto')">How to Use</button>
     <button class="tb" data-tab="settings" onclick="sw('settings')">Settings</button>
   </div>
 </nav>
@@ -315,6 +346,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="btn bred bs" onclick="clearType()">&#128465; Clear Tab</button>
   </div>
   <div class="ttabs">
+    <button class="ttb" data-t="all" onclick="setType('all')">&#128269; All</button>
     <button class="ttb active" data-t="mainSignInstalls" onclick="setType('mainSignInstalls')">&#127968; Main Installs</button>
     <button class="ttb" data-t="safetySignInstalls" onclick="setType('safetySignInstalls')">&#9940; Safety Signs</button>
     <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">&#127979; Riders</button>
@@ -325,6 +357,36 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <thead id="oth"></thead>
     <tbody id="otb"><tr class="loading-row"><td colspan="8">Loading…</td></tr></tbody>
   </table></div>
+</div>
+
+<!-- HOW TO USE -->
+<div class="tp" id="tp-howto">
+  <div style="max-width:760px">
+    <div class="scard" style="margin-bottom:18px">
+      <h3>&#128231; Weekly Workflow — MN Homes Orders</h3>
+      <p style="font-size:.85rem;color:var(--g500);margin-bottom:14px">Ashley Myers (MN Custom Homes) emails weekly order tables, titled by week (e.g. "5/31 Week"). Follow these steps every week:</p>
+      <div class="step"><div class="snm2">1</div><div class="sbody"><strong>Open the email in the Outlook app</strong><p>Use the desktop Outlook app, <strong>not the browser</strong> — the browser version cuts off tables when printing.</p></div></div>
+      <div class="step"><div class="snm2">2</div><div class="sbody"><strong>Save the whole thread as PDF</strong><p>With the email open, press <code>Ctrl+P</code> &rarr; printer: <strong>Microsoft Print to PDF</strong> (or Save as PDF) &rarr; Print/Save. This captures the entire thread including urgent requests buried in replies.</p></div></div>
+      <div class="step"><div class="snm2">3</div><div class="sbody"><strong>Name it with the week number</strong><p>Use the week from the subject line, e.g. <code>5-31 Week.pdf</code>, and save it on the SignPros server under:<br><code>Digitech products &rarr; MN homes &rarr; new orders</code></p></div></div>
+      <div class="step"><div class="snm2">4</div><div class="sbody"><strong>Upload here</strong><p>Go to the <strong>Upload</strong> tab &rarr; choose <strong>&#128640; Full Email — Auto-Detect</strong> &rarr; drop the PDF. The AI scans every page and finds all tables automatically: Main Installs, Safety Signs, Riders, Removals, and Urgent Requests.</p></div></div>
+      <div class="step"><div class="snm2">5</div><div class="sbody"><strong>Review, fix, save</strong><p>Check the extracted rows against the email — click any cell to correct it, click a Cancelled cell to toggle. Then <strong>Save to Database</strong>. The whole team sees it instantly.</p></div></div>
+    </div>
+    <div class="scard" style="margin-bottom:18px">
+      <h3>&#128172; Team Notes</h3>
+      <p style="font-size:.85rem;color:var(--g500)">Every order has a <strong>&#128172; notes</strong> button in the Orders tab. Use it to log who took the order, install issues, date changes, or anything the next person needs to know. Notes are shared — if Kelly adds a note, Dick sees it. Your name is asked once and remembered on this device.</p>
+    </div>
+    <div class="scard" style="margin-bottom:18px">
+      <h3>&#9999;&#65039; Daily Use</h3>
+      <div class="step"><div class="snm2">&#10003;</div><div class="sbody"><strong>Mark work done</strong><p>Orders tab &rarr; click the Date Completed / Date Removed cell &rarr; type the date. Status flips to Completed automatically.</p></div></div>
+      <div class="step"><div class="snm2">&#10003;</div><div class="sbody"><strong>Search everything</strong><p>The <strong>All</strong> tab in Orders shows every order across all five categories — search by address, PM, or order #.</p></div></div>
+      <div class="step"><div class="snm2">&#10003;</div><div class="sbody"><strong>Copy rider text</strong><p>Main Installs rows have a &#128203; button — copies the MN02 rider text (address + presales + LAO) ready to paste into your design file.</p></div></div>
+      <div class="step"><div class="snm2">&#10003;</div><div class="sbody"><strong>Friday backup</strong><p>Settings &rarr; Backup All Data. Takes 2 seconds, saves the whole database as one file.</p></div></div>
+    </div>
+    <div class="scard">
+      <h3>&#9888;&#65039; Tips</h3>
+      <p style="font-size:.83rem;color:var(--g500);line-height:1.8">&bull; Orange rows in Ashley's emails = cancelled projects — verify the Cancelled toggle after extraction.<br>&bull; If extraction misses rows, crop a screenshot of just that table and upload it under its specific category instead.<br>&bull; Duplicate order numbers are skipped automatically when uploading multi-page threads.<br>&bull; If the AI is rate-limited (busy day), wait a minute and retry — it auto-falls back to other models.</p>
+    </div>
+  </div>
 </div>
 
 <!-- SETTINGS -->
@@ -371,6 +433,24 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
 </div>
 
 </main>
+
+<!-- NOTES MODAL -->
+<div id="notes-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:500" onclick="if(event.target===this)closeNotes()">
+  <div style="max-width:520px;margin:8vh auto;background:#fff;border-radius:var(--rl);box-shadow:var(--sl);overflow:hidden">
+    <div style="background:var(--navy);color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:var(--fh);font-weight:700" id="notes-title">Order Notes</div>
+      <button onclick="closeNotes()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">&#10005;</button>
+    </div>
+    <div id="notes-list" style="max-height:300px;overflow-y:auto;padding:14px 18px"></div>
+    <div style="padding:12px 18px;border-top:1px solid var(--g200)">
+      <textarea id="notes-input" rows="2" placeholder="e.g. Kelly took this install — scheduled for Friday" style="width:100%;border:1.5px solid var(--g200);border-radius:var(--r);padding:8px 10px;font-family:var(--fb);font-size:.85rem;resize:vertical;outline:none"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:.75rem;color:var(--g400)">Posting as <strong id="notes-who"></strong> &middot; <a href="#" onclick="changeName();return false" style="color:var(--blue)">change</a></span>
+        <button class="btn bp bs" onclick="addNote()">Add Note</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="tc"></div>
 
 <script>
@@ -436,11 +516,77 @@ const RCOLS = {
 const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests'];
 const LABELS = {mainSignInstalls:'Main Sign Installs',safetySignInstalls:'Safety Sign Installs',onMarketRiders:'On-Market Riders',mainSignRemovals:'Main Sign Removals',urgentRequests:'Urgent Requests',fullEmail:'Full Email'};
 
+const TYPE_META = {
+  mainSignInstalls:{icon:'&#127968;',short:'Main Install'},
+  safetySignInstalls:{icon:'&#9940;',short:'Safety Sign'},
+  onMarketRiders:{icon:'&#127979;',short:'Rider'},
+  mainSignRemovals:{icon:'&#10060;',short:'Removal'},
+  urgentRequests:{icon:'&#9889;',short:'Urgent'}
+};
+
 const A = {
   tab:'dashboard', selCat:null, uploading:false, pending:null,
   orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[]},
-  otype:'mainSignInstalls', dbOk:false
+  otype:'mainSignInstalls', notesCtx:null
 };
+
+// ── USERNAME (asked once, kept on this device) ────────────────
+function userName(force){
+  let n = localStorage.getItem('mnos-username');
+  if(!n || force){
+    n = prompt('Your name (shown on team notes):', n || '') || n || 'Anonymous';
+    n = n.trim().slice(0,50) || 'Anonymous';
+    localStorage.setItem('mnos-username', n);
+  }
+  return n;
+}
+function changeName(){ userName(true); document.getElementById('notes-who').textContent = userName(); }
+
+// ── TEAM NOTES ────────────────────────────────────────────────
+function openNotes(type, id){
+  const row = A.orders[type].find(r=>r.id===id);
+  if(!row) return;
+  A.notesCtx = {type, id};
+  document.getElementById('notes-title').textContent =
+    'Notes — #' + (row.number||'?') + ' ' + (row.project||row.street_address||'');
+  document.getElementById('notes-who').textContent = userName();
+  renderNotes(row.team_notes||[]);
+  document.getElementById('notes-overlay').style.display='block';
+  document.getElementById('notes-input').focus();
+}
+function closeNotes(){ document.getElementById('notes-overlay').style.display='none'; A.notesCtx=null; }
+function renderNotes(notes){
+  const el = document.getElementById('notes-list');
+  if(!notes.length){ el.innerHTML='<div style="text-align:center;color:var(--g400);font-size:.83rem;padding:18px">No notes yet — be the first.</div>'; return; }
+  el.innerHTML = notes.map(n=>
+    `<div style="margin-bottom:10px;padding:9px 12px;background:var(--g50);border-radius:var(--r);border-left:3px solid var(--blue)">
+      <div style="font-size:.72rem;color:var(--g500);margin-bottom:3px"><strong style="color:var(--navy)">${esc(n.by)}</strong> &middot; ${esc(n.at)}</div>
+      <div style="font-size:.84rem;white-space:pre-wrap">${esc(n.text)}</div>
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+async function addNote(){
+  if(!A.notesCtx) return;
+  const inp = document.getElementById('notes-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  const {type, id} = A.notesCtx;
+  const row = A.orders[type].find(r=>r.id===id);
+  if(!row) return;
+  const notes = [...(row.team_notes||[]), {
+    by: userName(),
+    text: text.slice(0,500),
+    at: new Date().toLocaleString('en-US',{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})
+  }];
+  try{
+    await dbUpdate(type, id, 'team_notes', notes);
+    row.team_notes = notes;
+    inp.value='';
+    renderNotes(notes);
+    renderOrders();
+    toast('Note added','success');
+  }catch(e){toast('Could not save note: '+e.message,'error');}
+}
 
 // ── TABS ──────────────────────────────────────────────────────
 function sw(tab) {
@@ -801,7 +947,7 @@ async function dash(){
   const recent=all.slice(-10).reverse();
   if(!recent.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">&#128203;</div><p>No orders yet.</p></div></td></tr>';return;}
   tbody.innerHTML=recent.map(({type,row})=>{
-    const num=row['number']||'',proj=row['project']||'',pm=row['pm']||'',date=row['added_date']||'';
+    const num=row['number']||'',proj=row['project']||row['street_address']||'',pm=row['pm']||'',date=row['added_date']||'';
     return`<tr><td style="font-family:var(--fm);font-size:.78rem">${esc(num)}</td><td style="font-size:.73rem;color:var(--g500)">${LABELS[type]||type}</td><td>${esc(proj)}</td><td>${esc(pm)}</td><td style="font-size:.76rem;color:var(--g400)">${esc(date)}</td><td>${badge(getStatus(row))}</td></tr>`;
   }).join('');
 }
@@ -810,17 +956,61 @@ async function dash(){
 function setType(t){
   A.otype=t;
   document.querySelectorAll('.ttb').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
-  loadType(t).then(()=>renderOrders()).catch(()=>renderOrders());
+  if(t==='all'){
+    Promise.allSettled(TYPES.map(x=>loadType(x,true))).then(()=>renderOrders());
+  } else {
+    loadType(t).then(()=>renderOrders()).catch(()=>renderOrders());
+  }
+}
+
+function notesBtn(type,row){
+  const n=(row.team_notes||[]).length;
+  return `<button class="btn bh bs" title="Team notes" onclick="openNotes('${type}',${row.id})">&#128172;${n?'<span style="font-family:var(--fm);font-size:.68rem;margin-left:2px">'+n+'</span>':''}</button>`;
+}
+function keyDate(type,row){
+  return row.possession_date||row.construction_start_date||row.listing_date||row.remove_by_date||row.date_submitted||'';
 }
 
 function renderOrders(){
-  const type=A.otype,cols=COLS[type];
+  const type=A.otype;
   const q=(document.getElementById('osrch')?.value||'').toLowerCase();
   const sf=document.getElementById('ofl')?.value||'';
+
+  // ── ALL view: merged, with Type column ──
+  if(type==='all'){
+    let rows=[];
+    TYPES.forEach(t=>(A.orders[t]||[]).forEach(r=>rows.push({t,r})));
+    if(q)rows=rows.filter(({r})=>Object.values(r).join(' ').toLowerCase().includes(q));
+    if(sf)rows=rows.filter(({r})=>getStatus(r)===sf);
+    const cols=['#','Type','Project / Address','PM','Key Date','Completed','Status','&#128172;',''];
+    document.getElementById('oth').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+    const tb=document.getElementById('otb');
+    if(!rows.length){tb.innerHTML=`<tr><td colspan="${cols.length}"><div class="empty"><div class="ei">&#128235;</div><p>No matching orders.</p></div></td></tr>`;return;}
+    tb.innerHTML=rows.map(({t,r})=>{
+      const s=getStatus(r);
+      const m=TYPE_META[t];
+      return '<tr class="'+(s==='cancelled'?'cxl':'')+'">'
+        +`<td style="font-family:var(--fm);font-size:.78rem">${esc(r.number||'')}</td>`
+        +`<td style="white-space:nowrap">${m.icon} <span style="font-size:.75rem;color:var(--g600)">${m.short}</span></td>`
+        +`<td>${esc(r.project||r.street_address||'')}</td>`
+        +`<td>${esc(r.pm||'')}</td>`
+        +`<td style="font-size:.78rem">${esc(keyDate(t,r))}</td>`
+        +`<td style="font-size:.78rem">${esc(r.date_completed||r.date_removed||'')}</td>`
+        +`<td>${badge(s)}</td>`
+        +`<td>${notesBtn(t,r)}</td>`
+        +`<td><button class="btn bred bs" onclick="delRow('${t}',${r.id})">&#10005;</button></td>`
+        +'</tr>';
+    }).join('');
+    return;
+  }
+
+  // ── Single-type view (editable) ──
+  const cols=COLS[type];
   let rows=[...(A.orders[type]||[])];
   if(q)rows=rows.filter(r=>Object.values(r).join(' ').toLowerCase().includes(q));
   if(sf)rows=rows.filter(r=>getStatus(r)===sf);
   const dispCols=[...cols,{k:'_status',l:'Status',fn:(_,r)=>badge(getStatus(r))}];
+  dispCols.push({k:'_notes',l:'&#128172;',fn:(_,r)=>notesBtn(type,r)});
   if(type==='mainSignInstalls')dispCols.push({k:'_rider',l:'Rider',fn:(_,r)=>`<button class="btn bh bs" title="Copy MN02 rider text for design" onclick="copyRider(${r.id})">&#128203;</button>`});
   dispCols.push({k:'_del',l:'',fn:(_,r)=>`<button class="btn bred bs" onclick="delRow('${type}',${r.id})">&#10005;</button>`});
   document.getElementById('oth').innerHTML='<tr>'+dispCols.map(c=>`<th>${c.l}</th>`).join('')+'</tr>';
@@ -878,6 +1068,7 @@ async function delRow(type,id){
 }
 
 async function clearType(){
+  if(A.otype==='all'){toast('Switch to a specific tab to clear it','info');return;}
   if(!confirm('Clear ALL '+LABELS[A.otype]+' orders from database? Cannot be undone.'))return;
   try{
     await dbClear(A.otype);
@@ -888,6 +1079,7 @@ async function clearType(){
 
 // ── EXPORT CSV ────────────────────────────────────────────────
 async function exportCSV(type){
+  if(type==='all'){exportAll();return;}
   let rows=A.orders[type]||[];
   if(!rows.length){
     try{rows=await dbGet(type);}catch(e){toast('Could not load: '+e.message,'error');return;}
