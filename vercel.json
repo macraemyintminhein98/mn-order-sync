@@ -2,9 +2,13 @@
   "functions": {
     "api/extract.js": { "maxDuration": 60 },
     "api/store.js": { "maxDuration": 15 },
-    "api/debug.js": { "maxDuration": 10 }
+    "api/debug.js": { "maxDuration": 10 },
+    "api/cron-backup.js": { "maxDuration": 30 }
   },
+  "crons": [
+    { "path": "/api/cron-backup", "schedule": "0 15 * * 5" }
+  ],
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|manifest.json|sw.js|icon-).*)", "destination": "/index.html" }
   ]
 }

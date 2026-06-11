@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MN Order Sync — SignPros Inc.</title>
+<meta name="theme-color" content="#1B3A6B">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -196,6 +199,21 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
   .cat-card{padding:11px 12px}
   .cat-icon{font-size:1.2rem}
 }
+
+/* ── PRINT (install sheet) ── */
+@media print{
+  header,nav,.oc,.ttabs,#tc,.btn,#notes-overlay{display:none!important}
+  #print-head{display:block!important}
+  main{padding:0;max-width:none}
+  body{background:#fff}
+  .tw{border:none;overflow:visible}
+  table{font-size:.78rem}
+  thead th{background:#fff;color:#000;border-bottom:2px solid #000}
+  tbody tr{border-bottom:1px solid #999;page-break-inside:avoid}
+  td:last-child,th:last-child{display:none}
+  .bx::before{display:none}
+  .bx{background:none!important;color:#000!important;padding:0;font-weight:400}
+}
 </style>
 </head>
 <body>
@@ -337,6 +355,9 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
 <div class="tp" id="tp-orders">
   <div class="oc">
     <div class="sb"><input type="text" id="osrch" placeholder="Search address, PM, number…" oninput="renderOrders()"></div>
+    <select class="fl" id="opm" onchange="renderOrders()">
+      <option value="">All PMs</option>
+    </select>
     <select class="fl" id="ofl" onchange="renderOrders()">
       <option value="">All Status</option>
       <option value="pending">Pending</option>
@@ -346,6 +367,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     </select>
     <button class="btn bh bs" onclick="loadType(A.otype)">&#8635; Reload</button>
     <button class="btn bh bs" onclick="exportCSV(A.otype)">&#8595; Export CSV</button>
+    <button class="btn bh bs" onclick="printSheet()">&#128424; Print Sheet</button>
     <button class="btn bred bs" onclick="clearType()">&#128465; Clear Tab</button>
   </div>
   <div class="ttabs">
@@ -355,6 +377,12 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">&#127979; Riders</button>
     <button class="ttb" data-t="mainSignRemovals" onclick="setType('mainSignRemovals')">&#10060; Removals</button>
     <button class="ttb" data-t="urgentRequests" onclick="setType('urgentRequests')">&#9889; Urgent</button>
+  </div>
+  <div id="print-head" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid #1B3A6B;padding-bottom:8px;margin-bottom:12px">
+      <div style="font-family:var(--fh);font-size:1.3rem;font-weight:700">SIGNPROS — Install Sheet</div>
+      <div style="font-size:.85rem" id="print-meta"></div>
+    </div>
   </div>
   <div class="tw"><table>
     <thead id="oth"></thead>
@@ -1094,10 +1122,22 @@ function keyDate(type,row){
   return row.possession_date||row.construction_start_date||row.listing_date||row.remove_by_date||row.date_submitted||'';
 }
 
+function populatePMs(){
+  const sel=document.getElementById('opm');
+  if(!sel)return;
+  const cur=sel.value;
+  const pms=new Set();
+  const source=A.otype==='all'?TYPES.flatMap(t=>A.orders[t]||[]):(A.orders[A.otype]||[]);
+  source.forEach(r=>{const p=(r.pm||'').trim();if(p)pms.add(p);});
+  sel.innerHTML='<option value="">All PMs</option>'+[...pms].sort().map(p=>`<option value="${esc(p)}"${p===cur?' selected':''}>${esc(p)}</option>`).join('');
+}
+
 function renderOrders(){
+  populatePMs();
   const type=A.otype;
   const q=(document.getElementById('osrch')?.value||'').toLowerCase();
   const sf=document.getElementById('ofl')?.value||'';
+  const pmf=document.getElementById('opm')?.value||'';
 
   // ── ALL view: merged, with Type column ──
   if(type==='all'){
@@ -1105,6 +1145,7 @@ function renderOrders(){
     TYPES.forEach(t=>(A.orders[t]||[]).forEach(r=>rows.push({t,r})));
     if(q)rows=rows.filter(({r})=>Object.values(r).join(' ').toLowerCase().includes(q));
     if(sf)rows=rows.filter(({r})=>getStatus(r)===sf);
+    if(pmf)rows=rows.filter(({r})=>(r.pm||'').trim()===pmf);
     const cols=['#','Type','Project / Address','PM','Key Date','Completed','Status','&#128172;',''];
     document.getElementById('oth').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
     const tb=document.getElementById('otb');
@@ -1132,6 +1173,7 @@ function renderOrders(){
   let rows=[...(A.orders[type]||[])];
   if(q)rows=rows.filter(r=>Object.values(r).join(' ').toLowerCase().includes(q));
   if(sf)rows=rows.filter(r=>getStatus(r)===sf);
+  if(pmf)rows=rows.filter(r=>(r.pm||'').trim()===pmf);
   const dispCols=[...cols,{k:'_status',l:'Status',fn:(_,r)=>badge(getStatus(r))}];
   dispCols.push({k:'_notes',l:'&#128172;',fn:(_,r)=>notesBtn(type,r)});
   if(type==='mainSignInstalls')dispCols.push({k:'_rider',l:'Rider',fn:(_,r)=>`<button class="btn bh bs" title="Copy MN02 rider text for design" onclick="copyRider(${r.id})">&#128203;</button>`});
@@ -1247,6 +1289,15 @@ function badge(s){return`<span class="bx ${s}">${{completed:'Completed',pending:
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function show(id,v){const e=document.getElementById(id);if(e)e.style.display=v?'':'none';}
+function printSheet(){
+  const label=A.otype==='all'?'All Orders':LABELS[A.otype];
+  const pm=document.getElementById('opm')?.value||'';
+  const sf=document.getElementById('ofl')?.value||'';
+  document.getElementById('print-meta').textContent=
+    label+(pm?' · PM: '+pm:'')+(sf?' · '+sf:'')+' · '+new Date().toLocaleDateString('en-US');
+  window.print();
+}
+
 function refreshAll(){checkConn();dash();toast('Refreshed','info');}
 function toast(msg,type='info'){
   const tc=document.getElementById('tc');
@@ -1257,6 +1308,7 @@ function toast(msg,type='info'){
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300);},3500);
 }
 // ── INIT ──────────────────────────────────────────────────────
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 checkConn();
 dash();
 </script>
