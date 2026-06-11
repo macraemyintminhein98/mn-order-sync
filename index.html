@@ -175,7 +175,6 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <div class="htitle">MN Order Sync <span>MN Custom Homes</span></div>
     <div class="dots">
       <div class="dg"><div class="dot chk" id="dot-ai"></div>AI OCR</div>
-      <div class="dg"><div class="dot chk" id="dot-db"></div>Database</div>
     </div>
     <button class="btn bh bs" onclick="refreshAll()">&#8635; Refresh</button>
   </div>
@@ -334,45 +333,39 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
       <div class="scard">
         <h3>Connection Status</h3>
         <div class="sr"><span class="srl">&#127860; AI OCR (OpenRouter)</span><span class="pill chk" id="p-ai">Checking…</span></div>
-        <div class="sr"><span class="srl">&#128196; Database (Supabase)</span><span class="pill chk" id="p-db">Checking…</span></div>
-        <div style="margin-top:12px"><button class="btn bp bs" onclick="checkConn()">&#8635; Test Both</button></div>
+        <div style="margin-top:12px"><button class="btn bp bs" onclick="checkConn()">&#8635; Test</button></div>
       </div>
       <div class="scard">
-        <h3>Vercel Environment Variables</h3>
-        <p style="font-size:.8rem;color:var(--g500);margin-bottom:10px">Add all 3 in Vercel → Project Settings → Environment Variables → Redeploy.</p>
-        <div style="background:var(--g800);border-radius:var(--r);padding:12px 14px;font-family:var(--fm);font-size:.76rem;color:#e2e8f0;line-height:2">
-          <span style="color:#94a3b8">OPENROUTER_API_KEY</span> = sk-or-...<br>
-          <span style="color:#94a3b8">SUPABASE_URL</span> = https://xxx.supabase.co<br>
-          <span style="color:#94a3b8">SUPABASE_ANON_KEY</span> = eyJ...<br>
-          <span style="color:#94a3b8">OPENROUTER_MODEL</span> = (optional &mdash; auto fallback built in)
+        <h3>Setup — Only 1 Step</h3>
+        <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Add ONE environment variable in Vercel &rarr; Project Settings &rarr; Environment Variables &rarr; Redeploy:</p>
+        <div style="background:var(--g800);border-radius:var(--r);padding:12px 14px;font-family:var(--fm);font-size:.78rem;color:#e2e8f0;line-height:1.9">
+          <span style="color:#94a3b8">OPENROUTER_API_KEY</span> = sk-or-...
         </div>
-        <p style="font-size:.75rem;color:var(--g400);margin-top:8px">Get key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a>. App auto-tries: your custom model &rarr; free vision models &rarr; paid fallback (only if credits added). Works with $0.</p>
-      </div>
-      <div class="scard">
-        <h3>Export Data</h3>
-        <p style="font-size:.8rem;color:var(--g500);margin-bottom:12px">Download a CSV backup of all orders.</p>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button class="btn bh" onclick="exportCSV('mainSignInstalls')">&#8595; Main Sign Installs CSV</button>
-          <button class="btn bh" onclick="exportCSV('safetySignInstalls')">&#8595; Safety Sign Installs CSV</button>
-          <button class="btn bh" onclick="exportCSV('onMarketRiders')">&#8595; On-Market Riders CSV</button>
-          <button class="btn bh" onclick="exportCSV('mainSignRemovals')">&#8595; Main Sign Removals CSV</button>
-          <button class="btn bg" onclick="exportAll()">&#8595; Export ALL (4 files)</button>
-        </div>
+        <p style="font-size:.76rem;color:var(--g400);margin-top:8px">Free key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a> — works with $0 (free vision models). Optional $5 credit unlocks the more reliable paid fallback.</p>
       </div>
     </div>
-    <div class="scard">
-      <h3>Supabase Setup (One Time)</h3>
-      <p style="font-size:.8rem;color:var(--g500);margin-bottom:13px">Creates the 4 tables in your free Supabase database.</p>
-      <div class="step"><div class="snm2">1</div><div class="sbody"><strong>Create free account</strong><p>Go to <a href="https://supabase.com" target="_blank" style="color:var(--blue)">supabase.com</a> → New Project (free tier)</p></div></div>
-      <div class="step"><div class="snm2">2</div><div class="sbody"><strong>Get your URL + Anon Key</strong><p>Project Settings → API → copy <code>Project URL</code> and <code>anon public</code> key</p></div></div>
-      <div class="step"><div class="snm2">3</div><div class="sbody"><strong>Add to Vercel env vars</strong><p><code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code></p></div></div>
-      <div class="step"><div class="snm2">4</div><div class="sbody"><strong>Run this SQL in Supabase → SQL Editor</strong></div></div>
-      <div class="gcb">
-        <button class="cpb" onclick="copySQL()">Copy</button>
-        <pre id="sql-pre"></pre>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="scard">
+        <h3>Data Storage</h3>
+        <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px">Orders are saved in this browser automatically — no database, no account, nothing to set up. Use Backup to move data between computers or keep a safety copy.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn bg" onclick="backupJSON()">&#128190; Backup All Data (.json)</button>
+          <button class="btn bh" onclick="document.getElementById('restore-fi').click()">&#128194; Restore from Backup</button>
+          <input type="file" id="restore-fi" accept="application/json" onchange="restoreJSON(event)" style="display:none">
+        </div>
+        <p style="font-size:.73rem;color:var(--amber);margin-top:10px">&#9888; Clearing browser data deletes orders — download a backup weekly.</p>
       </div>
-      <div class="step" style="margin-top:11px"><div class="snm2">5</div><div class="sbody"><strong>Get OpenRouter key</strong><p><a href="https://openrouter.ai/keys" target="_blank" style="color:var(--blue)">openrouter.ai/keys</a> &mdash; free account works with $0. Optional: add $5 credit for the paid fallback model (more reliable when free tier is rate-limited)</p></div></div>
-      <div class="step"><div class="snm2">6</div><div class="sbody"><strong>Redeploy Vercel → done!</strong></div></div>
+      <div class="scard">
+        <h3>Export CSV</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn bh" onclick="exportCSV('mainSignInstalls')">&#8595; Main Sign Installs</button>
+          <button class="btn bh" onclick="exportCSV('safetySignInstalls')">&#8595; Safety Sign Installs</button>
+          <button class="btn bh" onclick="exportCSV('onMarketRiders')">&#8595; On-Market Riders</button>
+          <button class="btn bh" onclick="exportCSV('mainSignRemovals')">&#8595; Main Sign Removals</button>
+          <button class="btn bh" onclick="exportCSV('urgentRequests')">&#8595; Urgent Requests</button>
+          <button class="btn bg" onclick="exportAll()">&#8595; Export ALL</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -381,43 +374,6 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
 <div id="tc"></div>
 
 <script>
-document.getElementById('sql-pre').textContent = `-- Run this in Supabase → SQL Editor → New Query → Run
-
-CREATE TABLE IF NOT EXISTS main_sign_installs (
-  id SERIAL PRIMARY KEY,
-  number TEXT, project TEXT, city TEXT, pm TEXT,
-  possession_date TEXT, lao_name TEXT, lao_phone TEXT,
-  date_completed TEXT, notes TEXT, cancelled BOOLEAN DEFAULT FALSE,
-  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS safety_sign_installs (
-  id SERIAL PRIMARY KEY,
-  number TEXT, project TEXT, city TEXT, pm TEXT,
-  construction_start_date TEXT, date_completed TEXT,
-  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS on_market_riders (
-  id SERIAL PRIMARY KEY,
-  number TEXT, project TEXT, pm TEXT,
-  listing_date TEXT, date_completed TEXT, notes TEXT,
-  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS main_sign_removals (
-  id SERIAL PRIMARY KEY,
-  number TEXT, project TEXT, pm TEXT,
-  remove_by_date TEXT, date_removed TEXT,
-  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS urgent_requests (
-  id SERIAL PRIMARY KEY,
-  number TEXT, street_address TEXT, pm TEXT,
-  request TEXT, date_submitted TEXT, date_completed TEXT,
-  added_date TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-);`;
 
 // ── COLUMN DEFINITIONS ────────────────────────────────────────
 const COLS = {
@@ -496,63 +452,89 @@ function sw(tab) {
   if(tab==='settings') checkConn();
 }
 
-// ── DB API CALLS ──────────────────────────────────────────────
-async function dbGet(type) {
-  const r = await fetch('/api/db?type='+type);
-  const d = await r.json();
-  if(d.error) throw new Error(d.error);
-  return d.rows || [];
+// ── LOCAL STORAGE DATA LAYER (no external database needed) ───
+const LS='mnos-';
+function lsLoad(type){try{return JSON.parse(localStorage.getItem(LS+type))||[]}catch{return[]}}
+function lsSave(type,rows){localStorage.setItem(LS+type,JSON.stringify(rows))}
+function nextId(){const n=parseInt(localStorage.getItem(LS+'seq')||'0')+1;localStorage.setItem(LS+'seq',String(n));return n}
+
+// camelCase OCR keys -> snake_case storage keys (matches table columns)
+function toDb(type,r){
+  const added=r.addedDate||new Date().toLocaleDateString('en-US');
+  if(type==='mainSignInstalls')return{number:r.number||'',project:r.project||'',city:r.city||'',pm:r.pm||'',possession_date:r.possessionDate||'',lao_name:r.laoName||'',lao_phone:r.laoPhone||'',date_completed:r.dateCompleted||'',notes:r.notes||'',cancelled:!!r.cancelled,added_date:added};
+  if(type==='safetySignInstalls')return{number:r.number||'',project:r.project||'',city:r.city||'',pm:r.pm||'',construction_start_date:r.constructionStartDate||'',date_completed:r.dateCompleted||'',added_date:added};
+  if(type==='onMarketRiders')return{number:r.number||'',project:r.project||'',pm:r.pm||'',listing_date:r.listingDate||'',date_completed:r.dateCompleted||'',notes:r.notes||'',added_date:added};
+  if(type==='mainSignRemovals')return{number:r.number||'',project:r.project||'',pm:r.pm||'',remove_by_date:r.removeByDate||'',date_removed:r.dateRemoved||'',added_date:added};
+  if(type==='urgentRequests')return{number:r.number||'',street_address:r.streetAddress||'',pm:r.pm||'',request:r.request||'',date_submitted:r.dateSubmitted||'',date_completed:r.dateCompleted||'',added_date:added};
+  return r;
 }
-async function dbInsert(type, rows) {
-  const r = await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'insert',type,rows})});
-  const d = await r.json();
-  if(d.error) throw new Error(d.error);
-  return d;
+
+async function dbGet(type){return lsLoad(type);}
+async function dbInsert(type,rows){
+  const all=lsLoad(type);
+  const mapped=rows.map(r=>({...toDb(type,r),id:nextId()}));
+  all.push(...mapped);lsSave(type,all);
+  return{inserted:mapped.length};
 }
-async function dbUpdate(type, id, field, value) {
-  const r = await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',type,id,field,value})});
-  const d = await r.json();
-  if(d.error) throw new Error(d.error);
-  return d;
+async function dbUpdate(type,id,field,value){
+  const all=lsLoad(type);
+  const row=all.find(r=>r.id===id);
+  if(row){row[field]=value;lsSave(type,all);}
+  return{success:true};
 }
-async function dbDelete(type, id) {
-  const r = await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',type,id})});
-  return r.json();
+async function dbDelete(type,id){
+  lsSave(type,lsLoad(type).filter(r=>r.id!==id));
+  return{success:true};
 }
-async function dbClear(type) {
-  const r = await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'clear',type})});
-  return r.json();
+async function dbClear(type){
+  lsSave(type,[]);
+  return{success:true};
+}
+
+// ── BACKUP / RESTORE ─────────────────────────────────────────
+function backupJSON(){
+  const data={_app:'mn-order-sync',_exported:new Date().toISOString()};
+  TYPES.forEach(t=>data[t]=lsLoad(t));
+  dl('mn-orders-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(data,null,2),'application/json');
+  toast('Backup downloaded — keep it safe!','success');
+}
+function restoreJSON(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const data=JSON.parse(rd.result);
+      let n=0;
+      TYPES.forEach(t=>{
+        if(Array.isArray(data[t])){
+          const existing=lsLoad(t);
+          const ids=new Set(existing.map(r=>r.id));
+          const add=data[t].filter(r=>!ids.has(r.id));
+          lsSave(t,[...existing,...add]);n+=add.length;
+        }
+      });
+      dash();toast('Restored '+n+' orders from backup','success');
+    }catch(e){toast('Invalid backup file','error');}
+  };
+  rd.readAsText(f);
+  ev.target.value='';
 }
 
 // ── LOAD TYPE ─────────────────────────────────────────────────
-async function loadType(type, silent) {
-  try {
-    A.orders[type] = await dbGet(type);
-    if(A.tab==='orders') renderOrders();
-  } catch(e) {
-    if(!silent) toast('DB error: '+e.message,'error');
-    throw e;
-  }
+async function loadType(type) {
+  A.orders[type] = await dbGet(type);
+  if(A.tab==='orders') renderOrders();
 }
 
 // ── CONNECTION CHECK ──────────────────────────────────────────
 async function checkConn() {
   setDot('ai','chk'); setPill('p-ai','chk','Checking…');
-  setDot('db','chk'); setPill('p-db','chk','Checking…');
-  // AI check
   try {
     const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ping:1,type:'mainSignInstalls'})});
     const d=await r.json();
     const ok=!(d.error&&d.error.includes('OPENROUTER_API_KEY'));
-    setDot('ai',ok?'ok':'err'); setPill('p-ai',ok?'ok':'err',ok?'Connected':'Not configured');
+    setDot('ai',ok?'ok':'err'); setPill('p-ai',ok?'ok':'err',ok?'Connected':'Add OPENROUTER_API_KEY in Vercel');
   }catch{setDot('ai','err');setPill('p-ai','err','Error');}
-  // DB check
-  try {
-    const r=await fetch('/api/db?type=mainSignInstalls');
-    const d=await r.json();
-    if(d.error){setDot('db','err');setPill('p-db','err',d.error.includes('SUPABASE')?'Not configured':'Tables not found — run SQL');A.dbOk=false;}
-    else{setDot('db','ok');setPill('p-db','ok','Connected');A.dbOk=true;}
-  }catch{setDot('db','err');setPill('p-db','err','Error');A.dbOk=false;}
 }
 function setDot(k,s){document.getElementById('dot-'+k).className='dot '+s;}
 function setPill(id,s,l){const e=document.getElementById(id);if(e){e.className='pill '+s;e.textContent=l;}}
@@ -803,14 +785,7 @@ async function saveRows(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 async function dash(){
-  // Load all types silently; surface one banner if DB is down
-  const results = await Promise.allSettled(TYPES.map(t=>loadType(t,true)));
-  const failed = results.find(r=>r.status==='rejected');
-  if(failed && !A._dbWarned){
-    A._dbWarned = true;
-    toast('Database: '+failed.reason.message,'error');
-  }
-  if(!failed) A._dbWarned = false;
+  await Promise.all(TYPES.map(t=>loadType(t)));
   let tot=0,pen=0,com=0,can=0;
   const ts={mainSignInstalls:{t:0,c:0},safetySignInstalls:{t:0,c:0},onMarketRiders:{t:0,c:0},mainSignRemovals:{t:0,c:0}};
   const all=[];
@@ -842,7 +817,7 @@ async function dash(){
 function setType(t){
   A.otype=t;
   document.querySelectorAll('.ttb').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
-  loadType(t).then(()=>renderOrders()).catch(()=>renderOrders());
+  loadType(t).then(()=>renderOrders());
 }
 
 function renderOrders(){
@@ -942,11 +917,6 @@ function dl(name,content,mime){
   a.download=name;a.click();
 }
 
-// ── SQL COPY ──────────────────────────────────────────────────
-function copySQL(){
-  navigator.clipboard.writeText(document.getElementById('sql-pre').textContent)
-    .then(()=>toast('SQL copied!','success'));
-}
 
 // ── HELPERS ───────────────────────────────────────────────────
 function isDone(r){return !!(r['date_completed']||r['date_removed']||r['dateCompleted']||r['dateRemoved']);}
