@@ -311,6 +311,11 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
         <div class="cat-info"><div class="cat-name">Urgent / One-off Requests</div><div class="cat-desc">Damaged signs · rush installs · date changes</div></div>
         <div class="cat-check" id="chk-urgentRequests"></div>
       </div>
+      <div class="cat-card" id="cat-barricades" onclick="selectCat('barricades')">
+        <span class="cat-icon">&#128679;</span>
+        <div class="cat-info"><div class="cat-name">Barricades</div><div class="cat-desc">Driveway barricade requests · MN11 pricing</div></div>
+        <div class="cat-check" id="chk-barricades"></div>
+      </div>
       <div class="cat-card" id="cat-fullEmail" onclick="selectCat('fullEmail')" style="border-style:dashed">
         <span class="cat-icon">&#128640;</span>
         <div class="cat-info"><div class="cat-name">Full Email — Auto-Detect</div><div class="cat-desc">Scans ALL tables at once · works with PDFs</div></div>
@@ -377,6 +382,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     <button class="ttb" data-t="onMarketRiders" onclick="setType('onMarketRiders')">&#127979; Riders</button>
     <button class="ttb" data-t="mainSignRemovals" onclick="setType('mainSignRemovals')">&#10060; Removals</button>
     <button class="ttb" data-t="urgentRequests" onclick="setType('urgentRequests')">&#9889; Urgent</button>
+    <button class="ttb" data-t="barricades" onclick="setType('barricades')">&#128679; Barricades</button>
   </div>
   <div id="print-head" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid #1B3A6B;padding-bottom:8px;margin-bottom:12px">
@@ -436,7 +442,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
     </div>
     <div class="scard">
       <h3>&#9888;&#65039; Tips</h3>
-      <p style="font-size:.83rem;color:var(--g500);line-height:1.8">&bull; Orange rows in Ashley's emails = cancelled projects — verify the Cancelled toggle after extraction.<br>&bull; If extraction misses rows, crop a screenshot of just that table and upload it under its specific category instead.<br>&bull; Duplicate order numbers are skipped automatically when uploading multi-page threads.<br>&bull; If the AI is rate-limited (busy day), wait a minute and retry — it auto-falls back to other models.<br>&bull; Driveway barricade requests (like "#623 Requested Driveway Barricade") come in as <strong>&#9889; Urgent Requests</strong> — extract them with Full Email auto-detect. Pricing is in the <strong>Price Book</strong> tab (MN11).</p>
+      <p style="font-size:.83rem;color:var(--g500);line-height:1.8">&bull; Orange rows in Ashley's emails = cancelled projects — verify the Cancelled toggle after extraction.<br>&bull; If extraction misses rows, crop a screenshot of just that table and upload it under its specific category instead.<br>&bull; Duplicate order numbers are skipped automatically when uploading multi-page threads.<br>&bull; If the AI is rate-limited (busy day), wait a minute and retry — it auto-falls back to other models.<br>&bull; Driveway barricade requests (like "#623 Requested Driveway Barricade") get their own <strong>&#128679; Barricades</strong> category — Full Email auto-detect routes them there automatically, with the "Needed By" deadline pulled from the request text. Pricing: <strong>Price Book</strong> tab, MN11.</p>
     </div>
   </div>
 </div>
@@ -477,6 +483,7 @@ select.fl{padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--r)
           <button class="btn bh" onclick="exportCSV('onMarketRiders')">&#8595; On-Market Riders</button>
           <button class="btn bh" onclick="exportCSV('mainSignRemovals')">&#8595; Main Sign Removals</button>
           <button class="btn bh" onclick="exportCSV('urgentRequests')">&#8595; Urgent Requests</button>
+          <button class="btn bh" onclick="exportCSV('barricades')">&#8595; Barricades</button>
           <button class="btn bg" onclick="exportAll()">&#8595; Export ALL</button>
         </div>
       </div>
@@ -535,6 +542,11 @@ const COLS = {
     {k:'number',l:'#'},{k:'street_address',l:'Street Address',e:1},{k:'pm',l:'PM',e:1},
     {k:'request',l:'Request',e:1},{k:'date_submitted',l:'Date Submitted',e:1},
     {k:'date_completed',l:'Date Completed',e:1},{k:'added_date',l:'Added'}
+  ],
+  barricades:[
+    {k:'number',l:'#'},{k:'project',l:'Project / Address',e:1},{k:'pm',l:'PM',e:1},
+    {k:'request',l:'Request',e:1},{k:'date_needed',l:'Needed By',e:1},{k:'date_submitted',l:'Date Submitted',e:1},
+    {k:'date_completed',l:'Date Completed',e:1},{k:'added_date',l:'Added'}
   ]
 };
 
@@ -562,23 +574,28 @@ const RCOLS = {
   urgentRequests:[
     {k:'number',l:'#'},{k:'streetAddress',l:'Street Address',e:1},{k:'pm',l:'PM',e:1},
     {k:'request',l:'Request',e:1},{k:'dateSubmitted',l:'Date Submitted',e:1}
+  ],
+  barricades:[
+    {k:'number',l:'#'},{k:'project',l:'Project / Address',e:1},{k:'pm',l:'PM',e:1},
+    {k:'request',l:'Request',e:1},{k:'dateNeeded',l:'Needed By',e:1},{k:'dateSubmitted',l:'Date Submitted',e:1}
   ]
 };
 
-const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests'];
-const LABELS = {mainSignInstalls:'Main Sign Installs',safetySignInstalls:'Safety Sign Installs',onMarketRiders:'On-Market Riders',mainSignRemovals:'Main Sign Removals',urgentRequests:'Urgent Requests',fullEmail:'Full Email'};
+const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests','barricades'];
+const LABELS = {mainSignInstalls:'Main Sign Installs',safetySignInstalls:'Safety Sign Installs',onMarketRiders:'On-Market Riders',mainSignRemovals:'Main Sign Removals',urgentRequests:'Urgent Requests',barricades:'Barricades',fullEmail:'Full Email'};
 
 const TYPE_META = {
   mainSignInstalls:{icon:'&#127968;',short:'Main Install'},
   safetySignInstalls:{icon:'&#9940;',short:'Safety Sign'},
   onMarketRiders:{icon:'&#127979;',short:'Rider'},
   mainSignRemovals:{icon:'&#10060;',short:'Removal'},
-  urgentRequests:{icon:'&#9889;',short:'Urgent'}
+  urgentRequests:{icon:'&#9889;',short:'Urgent'},
+  barricades:{icon:'&#128679;',short:'Barricade'}
 };
 
 const A = {
   tab:'dashboard', selCat:null, uploading:false, pending:null,
-  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[]},
+  orders:{mainSignInstalls:[],safetySignInstalls:[],onMarketRiders:[],mainSignRemovals:[],urgentRequests:[],barricades:[]},
   otype:'mainSignInstalls', notesCtx:null
 };
 
@@ -1119,7 +1136,7 @@ function notesBtn(type,row){
   return `<button class="btn bh bs" title="Team notes" onclick="openNotes('${type}',${row.id})">&#128172;${n?'<span style="font-family:var(--fm);font-size:.68rem;margin-left:2px">'+n+'</span>':''}</button>`;
 }
 function keyDate(type,row){
-  return row.possession_date||row.construction_start_date||row.listing_date||row.remove_by_date||row.date_submitted||'';
+  return row.possession_date||row.construction_start_date||row.listing_date||row.remove_by_date||row.date_needed||row.date_submitted||'';
 }
 
 function populatePMs(){
@@ -1279,7 +1296,7 @@ function parseUS(s){
   return new Date(y,parseInt(m[1])-1,parseInt(m[2]));
 }
 function isOverdue(r){
-  const d=parseUS(r.remove_by_date||r.possession_date||r.construction_start_date||r.listing_date||'');
+  const d=parseUS(r.remove_by_date||r.possession_date||r.construction_start_date||r.listing_date||r.date_needed||'');
   if(!d)return false;
   const today=new Date();today.setHours(0,0,0,0);
   return d<today;

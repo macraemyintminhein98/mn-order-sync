@@ -25,7 +25,12 @@ Empty cells = "". If this table is not in the image, return {"rows":[]}.`,
   urgentRequests: `Extract any urgent/one-off request table from this image. These have columns: #, Street Address, PM, Request, Date Submitted.
 Return ONLY valid JSON, no markdown.
 {"rows":[{"number":"618","streetAddress":"17716 NE 12th St","pm":"Zach N","request":"Safety sign is damaged and will need to be replaced","dateSubmitted":"6/4/2026"}]}
-If no such table is in the image, return {"rows":[]}.`,
+EXCLUDE rows whose request is about a driveway barricade — those belong to the barricades category. If no such table is in the image, return {"rows":[]}.`,
+
+  barricades: `Extract any driveway barricade requests from this image. They appear in request tables (#, Street Address, PM, Request, Date Submitted) where the request mentions a barricade.
+Return ONLY valid JSON, no markdown.
+{"rows":[{"number":"623","project":"9615 NE 34th St","pm":"Rachel B","request":"Requested Driveway Barricade - Flatwork being poured on 6.16","dateNeeded":"6/16/2026","dateSubmitted":"6/11/2026"}]}
+dateNeeded = any deadline mentioned in the request (e.g. "poured on 6.16" means needed by 6/16). Empty if none stated. If no barricade requests in the image, return {"rows":[]}.`,
 
   fullEmail: `This is a page from an order email sent by MN Custom Homes to SignPros. It may contain any of these tables:
 1. "Main Sign Installs (New Land)" — #, Project, City, PM, Possession date, LAO to list on rider, LAO's #, Date Completed (orange rows = cancelled)
@@ -33,6 +38,7 @@ If no such table is in the image, return {"rows":[]}.`,
 3. "On-Market Riders Installs" — #, Project, PM, Listing Date, Date Completed, Notes
 4. "Main Sign Removals" — #, Project, PM, Remove By Date, Date Removed
 5. Urgent request tables — #, Street Address, PM, Request, Date Submitted
+6. Driveway barricade requests — rows in request tables where the request mentions a barricade. Put these in "barricades", NOT in urgentRequests.
 
 Extract ALL tables visible on this page. Return ONLY valid JSON, no markdown:
 {
@@ -40,7 +46,8 @@ Extract ALL tables visible on this page. Return ONLY valid JSON, no markdown:
  "safetySignInstalls":[{"number":"","project":"","city":"","pm":"","constructionStartDate":"","dateCompleted":""}],
  "onMarketRiders":[{"number":"","project":"","pm":"","listingDate":"","dateCompleted":"","notes":""}],
  "mainSignRemovals":[{"number":"","project":"","pm":"","removeByDate":"","dateRemoved":""}],
- "urgentRequests":[{"number":"","streetAddress":"","pm":"","request":"","dateSubmitted":""}]
+ "urgentRequests":[{"number":"","streetAddress":"","pm":"","request":"","dateSubmitted":""}],
+ "barricades":[{"number":"","project":"","pm":"","request":"","dateNeeded":"","dateSubmitted":""}]
 }
 Use empty arrays for table types not on this page. Empty cells = "". Ignore email signatures, logos, badges.`
 };
@@ -81,7 +88,8 @@ const FIELDS = {
   safetySignInstalls: ['number','project','city','pm','constructionStartDate','dateCompleted'],
   onMarketRiders: ['number','project','pm','listingDate','dateCompleted','notes'],
   mainSignRemovals: ['number','project','pm','removeByDate','dateRemoved'],
-  urgentRequests: ['number','streetAddress','pm','request','dateSubmitted']
+  urgentRequests: ['number','streetAddress','pm','request','dateSubmitted'],
+  barricades: ['number','project','pm','request','dateNeeded','dateSubmitted']
 };
 
 function cleanStr(v) {

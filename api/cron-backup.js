@@ -5,7 +5,8 @@ const TYPES = {
   safetySignInstalls: 'safety-sign-installs',
   onMarketRiders: 'on-market-riders',
   mainSignRemovals: 'main-sign-removals',
-  urgentRequests: 'urgent-requests'
+  urgentRequests: 'urgent-requests',
+  barricades: 'barricades'
 };
 
 function redisCfg() {

@@ -1,7 +1,7 @@
 // Shared team storage via Upstash Redis (Vercel Marketplace)
 // Enable: Vercel project → Storage tab → Create Database → Upstash Redis (free)
 // Env vars are injected automatically. Supports both naming schemes.
-const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests'];
+const TYPES = ['mainSignInstalls','safetySignInstalls','onMarketRiders','mainSignRemovals','urgentRequests','barricades'];
 
 // Editable columns per type (+ team_notes everywhere). Updates outside this list are rejected.
 const EDITABLE = {
@@ -9,7 +9,8 @@ const EDITABLE = {
   safetySignInstalls: ['number','project','city','pm','construction_start_date','date_completed','team_notes'],
   onMarketRiders: ['number','project','pm','listing_date','date_completed','notes','team_notes'],
   mainSignRemovals: ['number','project','pm','remove_by_date','date_removed','team_notes'],
-  urgentRequests: ['number','street_address','pm','request','date_submitted','date_completed','team_notes']
+  urgentRequests: ['number','street_address','pm','request','date_submitted','date_completed','team_notes'],
+  barricades: ['number','project','pm','request','date_needed','date_submitted','date_completed','team_notes']
 };
 
 function cleanStr(v, max = 500) {
@@ -79,6 +80,7 @@ function toDb(type, r) {
   if (type === 'onMarketRiders') return { number:r.number||'', project:r.project||'', pm:r.pm||'', listing_date:r.listingDate||'', date_completed:r.dateCompleted||'', notes:r.notes||'', added_date:added };
   if (type === 'mainSignRemovals') return { number:r.number||'', project:r.project||'', pm:r.pm||'', remove_by_date:r.removeByDate||'', date_removed:r.dateRemoved||'', added_date:added };
   if (type === 'urgentRequests') return { number:r.number||'', street_address:r.streetAddress||'', pm:r.pm||'', request:r.request||'', date_submitted:r.dateSubmitted||'', date_completed:r.dateCompleted||'', added_date:added };
+  if (type === 'barricades') return { number:r.number||'', project:r.project||'', pm:r.pm||'', request:r.request||'', date_needed:r.dateNeeded||'', date_submitted:r.dateSubmitted||'', date_completed:r.dateCompleted||'', added_date:added };
   return r;
 }
 
