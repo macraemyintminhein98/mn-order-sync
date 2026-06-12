@@ -115,8 +115,9 @@ export default async function handler(req, res) {
         const all = await getRows(type);
         const end = await redis(['INCRBY', 'mnos:seq', rows.length]);
         const start = end - rows.length + 1;
+        const nowIso = new Date().toISOString();
         // raw=true means rows are already in snake_case (restore flow)
-        const mapped = rows.map((r, i) => ({ ...(raw ? r : toDb(type, r)), id: start + i }));
+        const mapped = rows.map((r, i) => ({ ...(raw ? r : toDb(type, r)), id: start + i, created_at: r.created_at || nowIso }));
         all.push(...mapped);
         await setRows(type, all);
         return res.status(200).json({ success: true, inserted: mapped.length });
@@ -141,9 +142,27 @@ export default async function handler(req, res) {
       }
 
       if (action === 'delete') {
+        const by = cleanStr(req.body.by, 50);
+        if (!by) return res.status(400).json({ error: 'Deletion requires a name for the audit log.' });
         const all = await getRows(type);
+        const victim = all.find(r => r.id === id);
+        if (!victim) return res.status(404).json({ error: 'Row not found' });
         await setRows(type, all.filter(r => r.id !== id));
+        // audit log
+        let log = [];
+        try { log = JSON.parse(await redis(['GET', 'mnos:deletions'])) || []; } catch {}
+        log.unshift({
+          by, at: new Date().toISOString(), type,
+          number: victim.number || '', project: victim.project || victim.street_address || ''
+        });
+        await redis(['SET', 'mnos:deletions', JSON.stringify(log.slice(0, 500))]);
         return res.status(200).json({ success: true });
+      }
+
+      if (action === 'deletions') {
+        let log = [];
+        try { log = JSON.parse(await redis(['GET', 'mnos:deletions'])) || []; } catch {}
+        return res.status(200).json({ log: log.slice(0, 50) });
       }
 
       if (action === 'clear') {
