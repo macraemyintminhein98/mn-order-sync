@@ -1,10 +1,11 @@
 // Shared team storage via Upstash Redis (Vercel Marketplace)
 // Enable: Vercel project → Storage tab → Create Database → Upstash Redis (free)
 // Env vars are injected automatically. Supports both naming schemes.
-const TYPES = ['onMarketRiders'];
+const TYPES = ['mainSignInstalls','onMarketRiders'];
 
 // Editable columns per type (+ team_notes everywhere). Updates outside this list are rejected.
 const EDITABLE = {
+  mainSignInstalls: ['number','project','city','pm','possession_date','lao_name','lao_phone','date_completed','notes','cancelled','team_notes'],
   onMarketRiders: ['number','project','pm','listing_date','date_completed','notes','team_notes']
 };
 
@@ -70,6 +71,7 @@ async function setRows(type, rows) {
 
 function toDb(type, r) {
   const added = r.addedDate || new Date().toLocaleDateString('en-US');
+  if (type === 'mainSignInstalls') return { number:r.number||'', project:r.project||'', city:r.city||'', pm:r.pm||'', possession_date:r.possessionDate||'', lao_name:r.laoName||'', lao_phone:r.laoPhone||'', date_completed:r.dateCompleted||'', notes:r.notes||'', cancelled:!!r.cancelled, added_date:added };
   return { number:r.number||'', project:r.project||'', pm:r.pm||'', listing_date:r.listingDate||'', date_completed:r.dateCompleted||'', notes:r.notes||'', added_date:added };
 }
 

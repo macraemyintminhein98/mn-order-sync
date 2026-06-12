@@ -1,6 +1,7 @@
 // Friday auto-backup: emails CSVs of all order types.
 // Requires env vars: RESEND_API_KEY (resend.com, free) + BACKUP_EMAIL_TO (comma-separated)
 const TYPES = {
+  mainSignInstalls: 'in-construction-riders',
   onMarketRiders: 'on-market-riders'
 };
 
