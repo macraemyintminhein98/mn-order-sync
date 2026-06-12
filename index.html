@@ -1183,6 +1183,7 @@ function showRev(pending){
   }
   const s=document.createElement('div');s.className='rs';
   s.innerHTML=`<div class="rh"><span class="rtn">&#128269; Review — ${LABELS[type]}</span><span class="rc">${rows.length} row${rows.length>1?'s':''}</span></div>`
+    +(type==='mainSignInstalls'?'<div class="rnote">&#9888; Orange rows in the email = Cancelled. Click the Cancelled cell to toggle.</div>':'')
     +`<div class="tw"><table><thead><tr>${cols.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody id="rev-body"></tbody></table></div>`;
   cont.appendChild(s);
   const tb=document.getElementById('rev-body');
@@ -1227,6 +1228,7 @@ function showRevMulti(data){
     const cols=RCOLS[type];
     const s=document.createElement('div');s.className='rs';
     s.innerHTML=`<div class="rh"><span class="rtn">${LABELS[type]}</span><span class="rc">${rows.length} row${rows.length>1?'s':''}</span></div>`
+      +(type==='mainSignInstalls'?'<div class="rnote">&#9888; Orange rows in the email = Cancelled. Click the Cancelled cell to toggle.</div>':'')
       +`<div class="tw"><table><thead><tr>${cols.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody id="rvm-${type}"></tbody></table></div>`;
     cont.appendChild(s);
     const tb=document.getElementById('rvm-'+type);
