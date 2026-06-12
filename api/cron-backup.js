@@ -1,12 +1,7 @@
 // Friday auto-backup: emails CSVs of all order types.
 // Requires env vars: RESEND_API_KEY (resend.com, free) + BACKUP_EMAIL_TO (comma-separated)
 const TYPES = {
-  mainSignInstalls: 'main-sign-installs',
-  safetySignInstalls: 'safety-sign-installs',
-  onMarketRiders: 'on-market-riders',
-  mainSignRemovals: 'main-sign-removals',
-  urgentRequests: 'urgent-requests',
-  barricades: 'barricades'
+  onMarketRiders: 'on-market-riders'
 };
 
 function redisCfg() {
