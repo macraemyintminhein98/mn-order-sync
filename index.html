@@ -798,38 +798,49 @@ async function doFile(file) {
   show('uz',false); show('proc',true); show('rev',false);
   document.getElementById('rev-tables').innerHTML='';
   const isPdf = file.type==='application/pdf'||/\.pdf$/i.test(file.name);
+  const pmsg = t => document.getElementById('proc-msg').textContent = t;
   try {
-    // Build list of page images (1 for normal image, N for PDF)
     let pages;
     if(isPdf){
-      document.getElementById('proc-msg').textContent='Rendering PDF pages…';
+      pmsg('Rendering PDF pages…');
       pages = await pdfToJpegs(file);
     } else {
       pages = [await toJpeg(file)];
     }
 
-    // Extract per page and merge
-    const merged = A.selCat==='fullEmail'
-      ? {mainSignInstalls:[],onMarketRiders:[]}
-      : {rows:[]};
+    // Extract ALL pages in parallel — one slow or failed page no longer blocks the rest
+    let done = 0;
+    pmsg('AI scanning '+pages.length+' page'+(pages.length>1?'s':'')+' in parallel… 0/'+pages.length+' done');
+    const extractPage = async (b64) => {
+      const r = await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:b64,mediaType:'image/jpeg',type:A.selCat})});
+      const d = await r.json().catch(()=>({error:'Bad response'}));
+      if(!r.ok || d.error) throw new Error(d.error||('HTTP '+r.status));
+      return d;
+    };
+    const results = await Promise.allSettled(pages.map(p =>
+      extractPage(p).finally(()=>{ done++; pmsg('AI scanning… '+done+'/'+pages.length+' pages done'); })
+    ));
+
+    // Merge what succeeded; remember what failed
+    const merged = A.selCat==='fullEmail' ? {mainSignInstalls:[],onMarketRiders:[]} : {rows:[]};
+    const failedPages = [];
     let usedModel='';
-    for(let p=0;p<pages.length;p++){
-      document.getElementById('proc-msg').textContent='AI scanning page '+(p+1)+' of '+pages.length+'…';
-      const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:pages[p],mediaType:'image/jpeg',type:A.selCat})});
-      if(!r.ok){const d=await r.json();throw new Error(d.error||'OCR failed on page '+(p+1));}
-      const data=await r.json();
+    results.forEach((res,i)=>{
+      if(res.status==='rejected'){ failedPages.push(i+1); return; }
+      const data=res.value;
       usedModel=data._model||usedModel;
       if(A.selCat==='fullEmail'){
         for(const k of Object.keys(merged)) merged[k].push(...(data[k]||[]));
       } else {
         merged.rows.push(...(data.rows||[]));
       }
-    }
+    });
 
-    // Dedupe by order number within each type
+    if(failedPages.length===pages.length) throw new Error('Every page failed — likely AI rate limit. Wait 1 minute and retry, or add $5 OpenRouter credit for the reliable paid model.');
+
     const dedupe = arr=>{
       const seen=new Set();
-      return arr.filter(r=>{const k=r.number+'|'+(r.project||r.streetAddress||'');if(!r.number)return true;if(seen.has(k))return false;seen.add(k);return true;});
+      return arr.filter(r=>{const k=r.number+'|'+(r.project||'');if(!r.number)return true;if(seen.has(k))return false;seen.add(k);return true;});
     };
     let total=0;
     if(A.selCat==='fullEmail'){
@@ -840,7 +851,14 @@ async function doFile(file) {
       A.pending={type:A.selCat,rows:merged.rows};
     }
     showRev(A.pending);
-    toast(total+' rows extracted'+(usedModel?' via '+usedModel.split('/').pop():''),'success');
+
+    if(failedPages.length){
+      toast(total+' rows extracted, but page'+(failedPages.length>1?'s':'')+' '+failedPages.join(', ')+' failed — verify nothing is missing, or retry just those pages as screenshots','error');
+    } else if(total===0){
+      toast('Scanned all '+pages.length+' pages — no rider tables found in this file','info');
+    } else {
+      toast(total+' rows extracted from '+pages.length+' page'+(pages.length>1?'s':'')+(usedModel?' via '+usedModel.split('/').pop():''),'success');
+    }
   }catch(err){toast('Error: '+err.message,'error');show('uz',true);}
   finally{A.uploading=false;show('proc',false);document.getElementById('fi').value='';}
 }
@@ -866,13 +884,15 @@ async function pdfToJpegs(file){
   const out=[];
   for(let i=1;i<=pdf.numPages;i++){
     const page=await pdf.getPage(i);
-    const vp=page.getViewport({scale:2});
+    let vp=page.getViewport({scale:2});
+    // Cap width at 1600px — plenty for table OCR, much faster to upload & process
+    if(vp.width>1600){ vp=page.getViewport({scale:2*1600/vp.width}); }
     const c=document.createElement('canvas');
     c.width=vp.width;c.height=vp.height;
     const ctx=c.getContext('2d');
     ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
     await page.render({canvasContext:ctx,viewport:vp}).promise;
-    out.push(c.toDataURL('image/jpeg',0.92).split(',')[1]);
+    out.push(c.toDataURL('image/jpeg',0.85).split(',')[1]);
   }
   return out;
 }

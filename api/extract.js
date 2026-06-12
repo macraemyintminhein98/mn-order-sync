@@ -52,7 +52,7 @@ function rateLimited(ip) {
   if (now - h.t > 60_000) { h.n = 0; h.t = now; }
   h.n++; hits.set(ip, h);
   if (hits.size > 5000) hits.clear();
-  return h.n > 30;
+  return h.n > 60;
 }
 
 // Whitelisted output fields per type — anything else the model returns is dropped
